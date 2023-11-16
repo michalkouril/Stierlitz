@@ -9,7 +9,7 @@ stierlitz : $(BIN).asm
 	$(WINE) $(ASM) -r $(BIN).asm build/$(BIN)
 
 burn :
-	$(BURNER) -w $(BIN).bin
+	$(BURNER) -w build/$(BIN).bin
 
 clean :
 	rm -f *.bin *.dat *.fix *.lst *.obj *.sym build/*.*
