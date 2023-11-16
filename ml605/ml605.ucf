@@ -22,7 +22,9 @@
 #  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 #  *                                                                        *
 #  *************************************************************************/
-
+#
+#   2023-11-16 Michal Kouril <xmkouril@gmail.com>
+#     * ML605 support
 # LED
 # mk - GPLED? backwards numbered
 NET led_byte<0> LOC = AC22; #GPLED7 (Rightmost - LSB)

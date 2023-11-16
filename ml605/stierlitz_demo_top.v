@@ -23,6 +23,10 @@
  *                                                                        *
  *************************************************************************/
 
+/*
+   2023-11-16 Michal Kouril <xmkouril@gmail.com>
+     * ML605 support
+ */
 
 `include "stierlitz.v"
 `include "infer-sram.v"
