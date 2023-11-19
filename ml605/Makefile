@@ -45,7 +45,7 @@ $(PROJ).bit: parout.ncd
 	$(BIN)/bitgen -w parout.ncd $(PROJ).bit $(PROJ).pcf
 
 $(PROJ).bin: $(PROJ).bit
-	$(BIN)/promgen -w -p mcs -o $(PROJ).mcs -u 0 $(PROJ).bit
+	$(BIN)/promgen -w -p mcs -o $(PROJ).mcs -data_width 16  -u 0 $(PROJ).bit
 
 $(PROJ)-jtag.cmd:
 	echo "setMode -bs" > $(PROJ)-jtag.cmd;

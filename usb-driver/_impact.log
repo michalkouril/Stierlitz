@@ -1,0 +1,10 @@
+iMPACT Version: 13.2
+
+iMPACT log file Started on Sun Oct  9 11:23:50 2011
+
+Welcome to iMPACT
+iMPACT Version: 13.2
+Project: /home/kouzy6/20111008184716/vdw_uart//auto_project.ipf created.
+// *** BATCH CMD : setMode -bs
+GUI --- Auto connect to cable...
+// *** BATCH CMD : setCable -port auto
