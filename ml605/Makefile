@@ -56,20 +56,36 @@ $(PROJ)-jtag.cmd:
 	echo "Program -p $(FPGA_ADDR)" >> $(PROJ)-jtag.cmd;
 	echo "quit" >> $(PROJ)-jtag.cmd;
 
-#$(PROJ)-prom.cmd:
-#	echo "setMode -bs" > $(PROJ)-prom.cmd;
-#	echo "setCable -target \"digilent_plugin\"" >> $(PROJ)-jtag.cmd;
-#	echo "Identify -inferir" >> $(PROJ)-prom.cmd;
-#	echo "ReadIdcode -p $(PROM_ADDR)" >> $(PROJ)-prom.cmd;
-#	echo "assignFile -p $(PROM_ADDR) -file $(PROJ).bit" >> $(PROJ)-prom.cmd;
-#	echo "Program -p $(PROM_ADDR)" >> $(PROJ)-prom.cmd;
-#	echo "quit" >> $(PROJ)-prom.cmd;
+# $(PROJ)-prom.cmd:
+# 	echo "setMode -bs" > $(PROJ)-prom.cmd;
+# 	echo "setCable -port auto" >> $(PROJ)-prom.cmd;
+# 	# echo "setCable -target \"digilent_plugin\"" >> $(PROJ)-prom.cmd;
+# 	echo "Identify -inferir" >> $(PROJ)-prom.cmd;
+# 	echo "ReadIdcode -p $(PROM_ADDR)" >> $(PROJ)-prom.cmd;
+# 	echo "assignFile -p $(PROM_ADDR) -file $(PROJ).msc" >> $(PROJ)-prom.cmd;
+# 	echo "Program -p $(PROM_ADDR)" >> $(PROJ)-prom.cmd;
+# 	echo "quit" >> $(PROJ)-prom.cmd;
+
+$(PROJ)-bpi.cmd:
+	echo "setMode -bs" > $(PROJ)-bpi.cmd;
+	echo "setCable -port auto" >> $(PROJ)-bpi.cmd;
+	echo "Identify -inferir" >> $(PROJ)-bpi.cmd;
+	echo "ReadIdcode -p $(PROM_ADDR)" >> $(PROJ)-bpi.cmd;
+	echo "attachflash -position ${FPGA_ADDR} -bpi 28F256P30" >> $(PROJ)-bpi.cmd;
+	echo "assignfiletoattachedflash -position ${FPGA_ADDR} -file \"$(PROJ).mcs\"" >> $(PROJ)-bpi.cmd;
+	echo "Program -p ${FPGA_ADDR} -dataWidth 16 -rs1 NONE -rs0 NONE -bpionly -e -v -loadfpga" >> $(PROJ)-bpi.cmd;
+	# echo "assignFile -p $(PROM_ADDR) -file $(PROJ).msc" >> $(PROJ)-prom.cmd;
+	# echo "Program -p $(PROM_ADDR)" >> $(PROJ)-prom.cmd;
+	echo "quit" >> $(PROJ)-bpi.cmd;
 
 jtag:	$(PROJ).bin $(PROJ)-jtag.cmd
 	LD_PRELOAD=../usb-driver/libusb-driver.so $(BURNER) -batch $(PROJ)-jtag.cmd
 
-#prom:	$(PROJ).bin $(PROJ)-prom.cmd
-#	$(BURNER) -batch $(PROJ)-prom.cmd
+# prom:	$(PROJ).bin $(PROJ)-prom.cmd
+# 	LD_PRELOAD=../usb-driver/libusb-driver.so $(BURNER) -batch $(PROJ)-prom.cmd
+
+bpi:	$(PROJ).bin $(PROJ)-bpi.cmd
+	LD_PRELOAD=../usb-driver/libusb-driver.so $(BURNER) -batch $(PROJ)-bpi.cmd
 
 clean:
 	rm -rf $(PROJ).bgn $(PROJ).bin $(PROJ).bit $(PROJ).bld \
