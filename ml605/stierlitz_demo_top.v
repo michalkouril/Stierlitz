@@ -214,7 +214,7 @@ module stierlitz_demo_top
 
    assign FLASH_A = sbus_address[24:1];
 
-   reg [7:0] sbus_start_op_shift;
+   reg [15:0] sbus_start_op_shift;
 
    always @(posedge hpi_clock)
    begin
@@ -223,11 +223,11 @@ module stierlitz_demo_top
 	   sbus_start_op_shift = 0;
 	end else
 	begin
-   	   sbus_start_op_shift = { sbus_start_op_shift[6:0], sbus_start_op };
+   	   sbus_start_op_shift = { sbus_start_op_shift[14:0], sbus_start_op };
 	end
    end
 
-   assign sbus_ready = sbus_start_op_shift[7]; // delay sbus_ready by 10 cycles after oe goes up
+   assign sbus_ready = sbus_start_op_shift[15]; // delay sbus_ready by 15 cycles after oe goes up
 
    assign sbus_data = (ram_we == 1'b0 & ram_oe == 1'b1) ? (sbus_address[0]?FLASH_D[15:8] : FLASH_D[7:0]) : 8'bz;
 
@@ -239,7 +239,7 @@ module stierlitz_demo_top
 
    // output FLASH_WAIT;
    assign FPGA_FWE_B = 1'b1; // WE# // read-only
-   assign FPGA_FOE_B = 1'b0; // ~sbus_start_op; // Output enable active-low
+   assign FPGA_FOE_B = ~sbus_start_op; // Output enable active-low
    // assign FPGA_CCLK = 1'b0; // X
    assign FPGA_FCS_B = 1'b0;
    assign PLATFLASH_L_B = 1'b0;
