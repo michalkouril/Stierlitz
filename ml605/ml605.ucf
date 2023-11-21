@@ -36,8 +36,30 @@ NET led_byte<5> LOC = AG23; #GPLED2
 NET led_byte<6> LOC = AE24; #GPLED1
 NET led_byte<7> LOC = AD24; #GPLED0 (Leftmost - MSB)
 
-NET CBUTTON  LOC = B21; # C Button
-NET EBUTTON  LOC = A23; # E Button
+NET CBUTTON  LOC = G26; # C Button
+NET EBUTTON  LOC = G17; # E Button
+NET NBUTTON  LOC = A19; # N Button
+NET SBUTTON  LOC = A18; # S Button
+NET WBUTTON  LOC = H17; # W Button
+
+# NET "GPIO_SW_C"                     LOC = "G26";    ## 2   on SW9 pushbutton (active-high)
+# NET "GPIO_SW_E"                     LOC = "G17";    ## 2   on SW7 pushbutton (active-high)
+# NET "GPIO_SW_N"                     LOC = "A19";    ## 2   on SW5 pushbutton (active-high)
+# NET "GPIO_SW_S"                     LOC = "A18";    ## 2   on SW6 pushbutton (active-high)
+# NET "GPIO_SW_W"                     LOC = "H17";    ## 2   on SW8 pushbutton (active-high)
+
+NET CLED  LOC = AP24; # C Button
+NET ELED  LOC = AE21; # E Button
+NET NLED  LOC = AH27; # N Button
+NET SLED  LOC = AH28; # S Button
+NET WLED  LOC = AD21; # W Button
+
+# NET "GPIO_LED_C"                    LOC = "AP24";   ## 2   on LED DS16
+# NET "GPIO_LED_E"                    LOC = "AE21";   ## 2   on LED DS19
+# NET "GPIO_LED_N"                    LOC = "AH27";   ## 2   on LED DS20
+# NET "GPIO_LED_S"                    LOC = "AH28";   ## 2   on LED DS18
+# NET "GPIO_LED_W"                    LOC = "AD21";   ## 2   on LED DS17
+
 
 ## NET gpio0_io<13> LOC = ???; # C Button
 ## NET gpio0_io<14> LOC = ???; # W Button
@@ -129,6 +151,55 @@ NET usb_hpi_int     LOC        = Y27;
 # NET usb_hpi_int     IOSTANDARD = LVCMOS33;
 NET usb_hpi_int     TIG;
 NET usb_hpi_int     PULLDOWN;
+
+## EEPROM
+NET "FLASH_A<0>"                      LOC = "AL8";    ## 29 on U4, A1 on U27
+NET "FLASH_A<1>"                      LOC = "AK8";    ## 25 on U4, B1 on U27
+NET "FLASH_A<2>"                      LOC = "AC9";    ## 24 on U4, C1 on U27
+NET "FLASH_A<3>"                      LOC = "AD10";   ## 23 on U4, D1 on U27
+NET "FLASH_A<4>"                      LOC = "C8";     ## 22 on U4, D2 on U27
+NET "FLASH_A<5>"                      LOC = "B8";     ## 21 on U4, A2 on U27
+NET "FLASH_A<6>"                      LOC = "E9";     ## 20 on U4, C2 on U27
+NET "FLASH_A<7>"                      LOC = "E8";     ## 19 on U4, A3 on U27
+NET "FLASH_A<8>"                      LOC = "A8";     ## 8  on U4, B3 on U27
+NET "FLASH_A<9>"                      LOC = "A9";     ## 7  on U4, C3 on U27
+NET "FLASH_A<10>"                     LOC = "D9";     ## 6  on U4, D3 on U27
+NET "FLASH_A<11>"                     LOC = "C9";     ## 5  on U4, C4 on U27
+NET "FLASH_A<12>"                     LOC = "D10";    ## 4  on U4, A5 on U27
+NET "FLASH_A<13>"                     LOC = "C10";    ## 3  on U4, B5 on U27
+NET "FLASH_A<14>"                     LOC = "F10";    ## 2  on U4, C5 on U27
+NET "FLASH_A<15>"                     LOC = "F9";     ## 1  on U4, D7 on U27
+NET "FLASH_A<16>"                     LOC = "AH8";    ## 55 on U4, D8 on U27
+NET "FLASH_A<17>"                     LOC = "AG8";    ## 18 on U4, A7 on U27
+NET "FLASH_A<18>"                     LOC = "AP9";    ## 17 on U4, B7 on U27
+NET "FLASH_A<19>"                     LOC = "AN9";    ## 16 on U4, C7 on U27
+NET "FLASH_A<20>"                     LOC = "AF10";   ## 11 on U4, C8 on U27
+NET "FLASH_A<21>"                     LOC = "AF9";    ## 10 on U4, A8 on U27
+NET "FLASH_A<22>"                     LOC = "AL9";    ## 9  on U4, G1 on U27
+NET "FLASH_A<23>"                     LOC = "AA23";   ## 26 on U4
+NET "FLASH_D<0>"                      LOC = "AF24";   ## 34 on U4, F2 on U27
+NET "FLASH_D<1>"                      LOC = "AF25";   ## 36 on U4, E2 on U27
+NET "FLASH_D<2>"                      LOC = "W24";    ## 39 on U4, G3 on U27
+NET "FLASH_D<3>"                      LOC = "V24";    ## 41 on U4, E4 on U27
+NET "FLASH_D<4>"                      LOC = "H24";    ## 47 on U4, E5 on U27
+NET "FLASH_D<5>"                      LOC = "H25";    ## 49 on U4, G5 on U27
+NET "FLASH_D<6>"                      LOC = "P24";    ## 51 on U4, G6 on U27
+NET "FLASH_D<7>"                      LOC = "R24";    ## 53 on U4, H7 on U27
+NET "FLASH_D<8>"                      LOC = "G23";    ## 35 on U4, E1 on U27
+NET "FLASH_D<9>"                      LOC = "H23";    ## 37 on U4, E3 on U27
+NET "FLASH_D<10>"                     LOC = "N24";    ## 40 on U4, F3 on U27
+NET "FLASH_D<11>"                     LOC = "N23";    ## 42 on U4, F4 on U27
+NET "FLASH_D<12>"                     LOC = "F23";    ## 48 on U4, F5 on U27
+NET "FLASH_D<13>"                     LOC = "F24";    ## 50 on U4, H5 on U27
+NET "FLASH_D<14>"                     LOC = "L24";    ## 52 on U4, G7 on U27
+NET "FLASH_D<15>"                     LOC = "M23";    ## 54 on U4, E7 on U27
+NET "FLASH_WAIT"                    LOC = "J26";    ## 56 on U4
+NET "FPGA_FWE_B"                    LOC = "AF23";   ## 14 on U4, G8 on U27
+NET "FPGA_FOE_B"                    LOC = "AA24";   ## 32 on U4, F8 on U27
+# NET "FPGA_CCLK"                     LOC = "K8";     ##           F1 on U27
+NET "PLATFLASH_L_B"                 LOC = "AC23";   ##           H1 on U27
+NET "FPGA_FCS_B"                    LOC = "Y24";    ## 30 on U4, B4 on U27 (U10 and switch S2.2 setting select either U4 or U27)
+NET "P30_CS_SEL"                    LOC = "AJ12";   ## 2   on S2 DIP switch (active-high),1 on U10
 
 
 #------------------------------------------------------------------------------

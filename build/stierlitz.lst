@@ -86,46 +86,53 @@ QTASM rev 1.18x
   54                     ;; FAKE_FILE_CLUSTERS	equ	32
   55                     
   56                     ;;;;;;;;;;;;; 128K
-  57           00000000  FILE_SIZE_LW		equ	0x0000
-  58           00000002  FILE_SIZE_UW		equ	0x0002
-  59           00000100  FILE_SIZE_IN_BLKS_LW	equ	0x0100
-  60           00000000  FILE_SIZE_IN_BLKS_UW	equ	0x0000
-  61           00000004  FAKE_FILE_CLUSTERS	equ	4
+  57                     ;; FILE_SIZE_LW		equ	0x0000
+  58                     ;; FILE_SIZE_UW		equ	0x0002
+  59                     ;; FILE_SIZE_IN_BLKS_LW	equ	0x0100
+  60                     ;; FILE_SIZE_IN_BLKS_UW	equ	0x0000
+  61                     ;; FAKE_FILE_CLUSTERS	equ	4
   62                     
-  63                     ;*****************************************************************************
-  64                     
-  65                     
-  66                     ;*****************************************************************************
-  67                     ;; Other: no need to change these much
-  68                     ;*****************************************************************************
-  69           00000001  FW_REV      		equ 	0x1       ; Firmware revision
-  70           000008ec  VENDOR_ID   		equ 	0x08EC    ; "M-Systems Flash Disk"
-  71           00000020  PRODUCT_ID  		equ 	0x0020    ; "TravelDrive"
+  63                     ;;;;;;;;;;;; BPI 8.9 meg (9232444)
+  64           ffffe03c  FILE_SIZE_LW		equ	0xE03C
+  65           0000008c  FILE_SIZE_UW		equ	0x008C
+  66           00004671  FILE_SIZE_IN_BLKS_LW	equ	0x4671
+  67           00000000  FILE_SIZE_IN_BLKS_UW	equ	0x0000
+  68           0000011a  FAKE_FILE_CLUSTERS	equ	282
+  69                     
+  70                     ;*****************************************************************************
+  71                     
   72                     
-  73           ffffffff  MAXBLOCK		equ	4194303 ; Index of last block (NOT block count!)
-  74                     
-  75                     ;; Because QTASM is braindead:
-  76           00000000  MAXBLOCK_3		equ	0x00
-  77           0000003f  MAXBLOCK_2		equ	0x3F
-  78           000000ff  MAXBLOCK_1		equ	0xFF
-  79           000000ff  MAXBLOCK_0		equ	0xFF
-  80                     ;*****************************************************************************
+  73                     ;*****************************************************************************
+  74                     ;; Other: no need to change these much
+  75                     ;*****************************************************************************
+  76           00000001  FW_REV      		equ 	0x1       ; Firmware revision
+  77           000008ec  VENDOR_ID   		equ 	0x08EC    ; "M-Systems Flash Disk"
+  78           00000020  PRODUCT_ID  		equ 	0x0020    ; "TravelDrive"
+  79                     
+  80           ffffffff  MAXBLOCK		equ	4194303 ; Index of last block (NOT block count!)
   81                     
-  82                     
-  83                     ;*****************************************************************************
-  84                     ;; Really shouldn't change this
-  85                     ;*****************************************************************************
-  86           00000110  USB_VER			equ     0x0110 ; 0x0110 for USB 1.1; 0x0200 for USB 2.0
-  87                     ;; Endpoints:
-  88           00000001  EP_IN			equ	0x01 ; 0x81 (ep1)
-  89           00000002  EP_OUT			equ	0x02 ; 0x02 (ep2)
-  90                     
-  91           00000081  EP_IN_ADDR		equ	0x81
-  92           00000002  EP_OUT_ADDR		equ	0x02
-  93           00000040  USB_PACKET_SIZE		equ     0x0040 ; 64 bytes
-  94           00000000  EP_IN_BINTERVAL		equ	0x00
-  95           00000000  EP_OUT_BINTERVAL	equ	0x00
-  96                     ;*****************************************************************************
+  82                     ;; Because QTASM is braindead:
+  83           00000000  MAXBLOCK_3		equ	0x00
+  84           0000003f  MAXBLOCK_2		equ	0x3F
+  85           000000ff  MAXBLOCK_1		equ	0xFF
+  86           000000ff  MAXBLOCK_0		equ	0xFF
+  87                     ;*****************************************************************************
+  88                     
+  89                     
+  90                     ;*****************************************************************************
+  91                     ;; Really shouldn't change this
+  92                     ;*****************************************************************************
+  93           00000110  USB_VER			equ     0x0110 ; 0x0110 for USB 1.1; 0x0200 for USB 2.0
+  94                     ;; Endpoints:
+  95           00000001  EP_IN			equ	0x01 ; 0x81 (ep1)
+  96           00000002  EP_OUT			equ	0x02 ; 0x02 (ep2)
+  97                     
+  98           00000081  EP_IN_ADDR		equ	0x81
+  99           00000002  EP_OUT_ADDR		equ	0x02
+ 100           00000040  USB_PACKET_SIZE		equ     0x0040 ; 64 bytes
+ 101           00000000  EP_IN_BINTERVAL		equ	0x00
+ 102           00000000  EP_OUT_BINTERVAL	equ	0x00
+ 103                     ;*****************************************************************************
 
   29                     ;*****************************************************************************
   30                     
@@ -1876,14 +1883,14 @@ QTASM rev 1.18x
   67                     ;*****************************************************************************
   68                     ;; watch out for carry (unhandled because QTASM is RETARDED ...)
   69                     ;; TODO: there's none right now. but check here again when we up the virtual file size.
-  70           0000039e  FILE_TOP_LW	equ	(FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM + FILE_SIZE_IN_BLKS_LW)
+  70           0000490f  FILE_TOP_LW	equ	(FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM + FILE_SIZE_IN_BLKS_LW)
   71           00000000  FILE_TOP_UW	equ	(FAT16_DATA_AREA_LBA_UW_EFFECTIVE_BOTTOM + FILE_SIZE_IN_BLKS_UW)
   72                     ;*****************************************************************************
   73 115e                test_lba_block_in_payload_range:
   74 115e 07c3 0000          mov    r3, FAT16_DATA_AREA_LBA_UW_EFFECTIVE_BOTTOM
   75 1162 07c2 029e          mov    r2, FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM
   76 1166 07c4 0000          mov    r4, FILE_TOP_UW
-  77 116a 07c5 039e          mov    r5, FILE_TOP_LW
+  77 116a 07c5 490f          mov    r5, FILE_TOP_LW
   78 116e af9f 112a          call   test_lba_block_in_range
   79 1172 77c2 0001          test   r2, 1
   80 1176 c004               jz     @f
@@ -2041,7 +2048,7 @@ QTASM rev 1.18x
  232 127c da01               subi   r1, 1
  233 127e c17c               jnz    @b
  234                         ;; if we're past the last page?
- 235 1280 57c0 0004          cmp    r0, FAKE_FILE_CLUSTERS
+ 235 1280 57c0 011a          cmp    r0, FAKE_FILE_CLUSTERS
  236 1284 c903               jbe    @f
  237 1286 af9f 0954          call   zap_send_buffer
  238 128a cf12               jmp    fat_build_done
@@ -2053,7 +2060,7 @@ QTASM rev 1.18x
  244 128e 57c9 16ea          cmp    r9, (send_buffer + BLOCKSIZE) ; stop if the block is full
  245 1292 c00e               je     fat_build_done
  246                         ;; There is room:
- 247 1294 57c0 0007          cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS - 1)
+ 247 1294 57c0 011d          cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS - 1)
  248 1298 c003               je     penult_cluster ; this was the penultimate cluster
  249 129a 0021               mov    w[r9++], r0
  250 129c d800               addi   r0, 1
@@ -2114,8 +2121,8 @@ QTASM rev 1.18x
  301 12e8 0000           	dw	0x0000 ; modified time (hours, minutes, seconds)
  302 12ea 0000           	dw	0x0000 ; modified date
  303 12ec 0003           	dw	0x0003 ; low word of 1st cluster address
- 304 12ee 0000           	dw	FILE_SIZE_LW ; lower word of size (0 for directories)
- 305 12f0 0002           	dw	FILE_SIZE_UW ; upper word of size (0 for directories)	
+ 304 12ee e03c           	dw	FILE_SIZE_LW ; lower word of size (0 for directories)
+ 305 12f0 008c           	dw	FILE_SIZE_UW ; upper word of size (0 for directories)	
  306                             ;; *****************************************************************
  307           00000040  	FAT16_ROOT_DIR_DATA_LEN equ ($-fat16_root_dir_data)
  308                     ;*****************************************************************************

@@ -47,10 +47,28 @@ module stierlitz_demo_top
    /*********************************************/
    CBUTTON,          /* Center Button */
    EBUTTON,          /* East Button */
-   /*********************************************/
-   led_byte          /* LED bank, 8 bits wide */
-   );
+   WBUTTON,
+   NBUTTON,
+   SBUTTON,
 
+   CLED,          /* Center LED */
+   ELED,          /* East LED */
+   WLED,
+   NLED,
+   SLED,
+   /*********************************************/
+   led_byte,         /* LED bank, 8 bits wide */
+   /*********************************************/
+   FLASH_A, /* 24 bit */
+   FLASH_D, /* 16 bit */
+   FLASH_WAIT,
+   FPGA_FWE_B,
+   FPGA_FOE_B,
+   // FPGA_CCLK,
+   PLATFLASH_L_B,
+   FPGA_FCS_B,
+   P30_CS_SEL
+   );
    
    /* The basics */
    input wire sys_clk_n;
@@ -58,6 +76,14 @@ module stierlitz_demo_top
    input wire sys_rst_pin;
    input wire CBUTTON;      /* These buttons are active-high */
    input wire EBUTTON;
+   input wire NBUTTON;
+   input wire SBUTTON;
+   input wire WBUTTON;
+   output wire CLED;
+   output wire ELED;
+   output wire NLED;
+   output wire SLED;
+   output wire WLED;
    output wire [7:0] led_byte;
 
    /* CY7C67300 */
@@ -68,6 +94,16 @@ module stierlitz_demo_top
    output wire [1:0] sace_usb_a;
    inout wire [15:0] sace_usb_d;
    output wire 	usb_hpi_reset_n;
+
+   output wire [23:0] FLASH_A; /* 24 bit */
+   inout wire [15:0] FLASH_D; /* 16 bit */
+   input wire FLASH_WAIT;
+   output wire FPGA_FWE_B;
+   output wire FPGA_FOE_B;
+   // output wire FPGA_CCLK;
+   output wire PLATFLASH_L_B;
+   output wire FPGA_FCS_B;
+   output wire P30_CS_SEL;
 
    wire [1:0]	usb_addr;
 
@@ -129,10 +165,8 @@ module stierlitz_demo_top
    wire [7:0] 	sbus_data;
    
 
-   assign sbus_ready = 1;
-
-
-   assign led_byte = sbus_address[16:9];
+   // assign led_byte = sbus_address[16:9];
+   assign led_byte = FLASH_D[7:0];
 
    
    stierlitz s(.clk(hpi_clock),
@@ -178,7 +212,40 @@ module stierlitz_demo_top
    assign ram_we = (~sbus_rw) & sbus_start_op;
    assign ram_oe = sbus_rw & sbus_start_op;
 
-     
+   assign FLASH_A = sbus_address[24:1];
+
+   reg [7:0] sbus_start_op_shift;
+
+   always @(posedge hpi_clock)
+   begin
+        if (sbus_start_op == 1'b0)
+	begin
+	   sbus_start_op_shift = 0;
+	end else
+	begin
+   	   sbus_start_op_shift = { sbus_start_op_shift[6:0], sbus_start_op };
+	end
+   end
+
+   assign sbus_ready = sbus_start_op_shift[7]; // delay sbus_ready by 10 cycles after oe goes up
+
+   assign sbus_data = (ram_we == 1'b0 & ram_oe == 1'b1) ? (sbus_address[0]?FLASH_D[15:8] : FLASH_D[7:0]) : 8'bz;
+
+   assign CLED = CBUTTON;
+   assign ELED = EBUTTON;
+   assign NLED = NBUTTON;
+   assign SLED = SBUTTON;
+   assign WLED = WBUTTON;
+
+   // output FLASH_WAIT;
+   assign FPGA_FWE_B = 1'b1; // WE# // read-only
+   assign FPGA_FOE_B = 1'b0; // ~sbus_start_op; // Output enable active-low
+   // assign FPGA_CCLK = 1'b0; // X
+   assign FPGA_FCS_B = 1'b0;
+   assign PLATFLASH_L_B = 1'b0;
+   assign P30_CS_SEL = 1'b1;
+
+/*     
    infer_sram #(17, 8, 131072)
    ram(.clk(ram_clock),
        .we(ram_we),
@@ -186,5 +253,5 @@ module stierlitz_demo_top
        .address(sbus_address[16:0]),
        .data(sbus_data)
        );
-      
+ */     
 endmodule

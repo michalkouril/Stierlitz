@@ -55,11 +55,18 @@
 ;; FAKE_FILE_CLUSTERS	equ	32
 
 ;;;;;;;;;;;;; 128K
-FILE_SIZE_LW		equ	0x0000
-FILE_SIZE_UW		equ	0x0002
-FILE_SIZE_IN_BLKS_LW	equ	0x0100
+;; FILE_SIZE_LW		equ	0x0000
+;; FILE_SIZE_UW		equ	0x0002
+;; FILE_SIZE_IN_BLKS_LW	equ	0x0100
+;; FILE_SIZE_IN_BLKS_UW	equ	0x0000
+;; FAKE_FILE_CLUSTERS	equ	4
+
+;;;;;;;;;;;; BPI 8.9 meg (9232444)
+FILE_SIZE_LW		equ	0xE03C
+FILE_SIZE_UW		equ	0x008C
+FILE_SIZE_IN_BLKS_LW	equ	0x4671
 FILE_SIZE_IN_BLKS_UW	equ	0x0000
-FAKE_FILE_CLUSTERS	equ	4
+FAKE_FILE_CLUSTERS	equ	282
 
 ;*****************************************************************************
 
