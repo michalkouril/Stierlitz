@@ -99,40 +99,48 @@ QTASM rev 1.18x
   67           00000000  FILE_SIZE_IN_BLKS_UW	equ	0x0000
   68           0000011a  FAKE_FILE_CLUSTERS	equ	282
   69                     
-  70                     ;*****************************************************************************
-  71                     
-  72                     
-  73                     ;*****************************************************************************
-  74                     ;; Other: no need to change these much
-  75                     ;*****************************************************************************
-  76           00000001  FW_REV      		equ 	0x1       ; Firmware revision
-  77           000008ec  VENDOR_ID   		equ 	0x08EC    ; "M-Systems Flash Disk"
-  78           00000020  PRODUCT_ID  		equ 	0x0020    ; "TravelDrive"
+  70                     ;;;;;;;;;;;; I2C 16 k (16384)
+  71           00004000  FILE2_SIZE_LW		equ	0x4000
+  72           00000000  FILE2_SIZE_UW		equ	0x0000
+  73           00000020  FILE2_SIZE_IN_BLKS_LW	equ	0x0020
+  74           00000000  FILE2_SIZE_IN_BLKS_UW	equ	0x0000
+  75           00000001  FAKE_FILE2_CLUSTERS	equ	1
+  76           0000011d  FILE2_CLUSTER_START_LW  equ     (3+FAKE_FILE_CLUSTERS)
+  77                     
+  78                     ;*****************************************************************************
   79                     
-  80           ffffffff  MAXBLOCK		equ	4194303 ; Index of last block (NOT block count!)
-  81                     
-  82                     ;; Because QTASM is braindead:
-  83           00000000  MAXBLOCK_3		equ	0x00
-  84           0000003f  MAXBLOCK_2		equ	0x3F
-  85           000000ff  MAXBLOCK_1		equ	0xFF
-  86           000000ff  MAXBLOCK_0		equ	0xFF
-  87                     ;*****************************************************************************
-  88                     
+  80                     
+  81                     ;*****************************************************************************
+  82                     ;; Other: no need to change these much
+  83                     ;*****************************************************************************
+  84           00000001  FW_REV      		equ 	0x1       ; Firmware revision
+  85           000008ec  VENDOR_ID   		equ 	0x08EC    ; "M-Systems Flash Disk"
+  86           00000020  PRODUCT_ID  		equ 	0x0020    ; "TravelDrive"
+  87                     
+  88           ffffffff  MAXBLOCK		equ	4194303 ; Index of last block (NOT block count!)
   89                     
-  90                     ;*****************************************************************************
-  91                     ;; Really shouldn't change this
-  92                     ;*****************************************************************************
-  93           00000110  USB_VER			equ     0x0110 ; 0x0110 for USB 1.1; 0x0200 for USB 2.0
-  94                     ;; Endpoints:
-  95           00000001  EP_IN			equ	0x01 ; 0x81 (ep1)
-  96           00000002  EP_OUT			equ	0x02 ; 0x02 (ep2)
+  90                     ;; Because QTASM is braindead:
+  91           00000000  MAXBLOCK_3		equ	0x00
+  92           0000003f  MAXBLOCK_2		equ	0x3F
+  93           000000ff  MAXBLOCK_1		equ	0xFF
+  94           000000ff  MAXBLOCK_0		equ	0xFF
+  95                     ;*****************************************************************************
+  96                     
   97                     
-  98           00000081  EP_IN_ADDR		equ	0x81
-  99           00000002  EP_OUT_ADDR		equ	0x02
- 100           00000040  USB_PACKET_SIZE		equ     0x0040 ; 64 bytes
- 101           00000000  EP_IN_BINTERVAL		equ	0x00
- 102           00000000  EP_OUT_BINTERVAL	equ	0x00
- 103                     ;*****************************************************************************
+  98                     ;*****************************************************************************
+  99                     ;; Really shouldn't change this
+ 100                     ;*****************************************************************************
+ 101           00000110  USB_VER			equ     0x0110 ; 0x0110 for USB 1.1; 0x0200 for USB 2.0
+ 102                     ;; Endpoints:
+ 103           00000001  EP_IN			equ	0x01 ; 0x81 (ep1)
+ 104           00000002  EP_OUT			equ	0x02 ; 0x02 (ep2)
+ 105                     
+ 106           00000081  EP_IN_ADDR		equ	0x81
+ 107           00000002  EP_OUT_ADDR		equ	0x02
+ 108           00000040  USB_PACKET_SIZE		equ     0x0040 ; 64 bytes
+ 109           00000000  EP_IN_BINTERVAL		equ	0x00
+ 110           00000000  EP_OUT_BINTERVAL	equ	0x00
+ 111                     ;*****************************************************************************
 
   29                     ;*****************************************************************************
   30                     
@@ -150,7 +158,7 @@ QTASM rev 1.18x
   44 04f5 e000               dw     IROM_BEGIN        ; mov [0xe000],0 - dummy write for alignment
   45 04f7 0000               dw     0
   46 04f9 c3b6               dw     SCAN_SIGNATURE    ; copy data to ORIGIN
-  47 04fb 15ec               dw     ((rom_end-rom_start)+2) ; length
+  47 04fb 16c8               dw     ((rom_end-rom_start)+2) ; length
   48 04fd 00                 db     0
   49 04fe 0500               dw     ORIGIN            ; Copy Destination
   50           00000000      reloc  ORIGIN            ; Relocate to this symbol
@@ -223,7 +231,7 @@ QTASM rev 1.18x
   57 053a 07c0 0058          mov    r0, 0x0058		; 'X'
   58 053e af9f 0510          call   dbg_putchar
   59 0542 af9f 05d4          call   print_newline
-  60 0546 07c8 14ea          mov    r8, send_buffer	; address of buffer
+  60 0546 07c8 15c6          mov    r8, send_buffer	; address of buffer
   61 054a 07c9 0040          mov    r9, 64		; number of bytes to print
   62 054e af9f 0580          call   dbg_dump_buffer
   63 0552 af4a               int    POPALL_INT
@@ -237,7 +245,7 @@ QTASM rev 1.18x
   71 0564 07c0 0058          mov    r0, 0x0058		; 'X'
   72 0568 af9f 0510          call   dbg_putchar
   73 056c af9f 05d4          call   print_newline
-  74 0570 07c8 16ea          mov    r8, receive_buffer	; address of buffer
+  74 0570 07c8 17c6          mov    r8, receive_buffer	; address of buffer
   75 0574 07c9 0040          mov    r9, 64		; number of bytes to print
   76 0578 af9f 0580          call   dbg_dump_buffer
   77 057c af4a               int    POPALL_INT
@@ -338,18 +346,18 @@ QTASM rev 1.18x
  172 065e 07c0 003d          mov	   r0, 0x003D		; =
  173 0662 af9f 0510          call   dbg_putchar
  174                         ;; print actual LBA index:
- 175 0666 09c1 1128          mov    r1, w[actual_lba_uw]
+ 175 0666 09c1 1186          mov    r1, w[actual_lba_uw]
  176 066a d1c1               shr    r1, 8
  177 066c 67c1 00ff          and    r1, 0xFF
  178 0670 af9f 05a8          call   print_hex_byte
- 179 0674 09c1 1128          mov    r1, w[actual_lba_uw]
+ 179 0674 09c1 1186          mov    r1, w[actual_lba_uw]
  180 0678 67c1 00ff          and    r1, 0xFF
  181 067c af9f 05a8          call   print_hex_byte
- 182 0680 09c1 1126          mov    r1, w[actual_lba_lw]
+ 182 0680 09c1 1184          mov    r1, w[actual_lba_lw]
  183 0684 d1c1               shr    r1, 8
  184 0686 67c1 00ff          and    r1, 0xFF
  185 068a af9f 05a8          call   print_hex_byte
- 186 068e 09c1 1126          mov    r1, w[actual_lba_lw]
+ 186 068e 09c1 1184          mov    r1, w[actual_lba_lw]
  187 0692 67c1 00ff          and    r1, 0xFF
  188 0696 af9f 05a8          call   print_hex_byte
  189 069a af9f 05d4          call   print_newline
@@ -482,9 +490,9 @@ QTASM rev 1.18x
   50 0726 09e7 0038 0714     mov    [bios_standard_usb_reset_handler], [SIE2_SLAVE_RESET_VEC]
   51 072c 07e7 07b6 0038     mov    [SIE2_SLAVE_RESET_VEC], my_standard_usb_reset_handler
   52                         ; Update BIOS SIE2 descriptor pointers.
-  53 0732 07e7 1486 00d4     mov    [SUSB2_DEV_DESC_VEC], dev_desc
-  54 0738 07e7 1498 00d6     mov    [SUSB2_CONFIG_DESC_VEC], conf_desc
-  55 073e 07e7 14b8 00d8     mov    [SUSB2_STRING_DESC_VEC], string_desc
+  53 0732 07e7 1562 00d4     mov    [SUSB2_DEV_DESC_VEC], dev_desc
+  54 0738 07e7 1574 00d6     mov    [SUSB2_CONFIG_DESC_VEC], conf_desc
+  55 073e 07e7 1594 00d8     mov    [SUSB2_STRING_DESC_VEC], string_desc
   56                         ;; Back up BIOS handler locations
   57 0744 09e7 00c6 0716     mov    [bios_standard_request_handler], [(SUSB2_STANDARD_INT*2)]
   58 074a 09e7 00ce 0718     mov    [bios_class_request_handler], [(SUSB2_CLASS_INT*2)]
@@ -622,9 +630,9 @@ QTASM rev 1.18x
  190 0846 cf09               jmp	   end_class_request_handler
  191 0848                class_req_eq_request_reset:
  192                         ;; TODO: implement genuine reset of EVERYTHING...
- 193 0848 07ef 0000 1460     mov    b[scsi_state], SCSI_state_CBW
- 194 084e 07e7 0000 145c     mov    [SCSI_dw_sense_lw], 0x0000
- 195 0854 07e7 0000 145e     mov    [SCSI_dw_sense_uw], 0x0000 ; dwSense = 0
+ 193 0848 07ef 0000 153c     mov    b[scsi_state], SCSI_state_CBW
+ 194 084e 07e7 0000 1538     mov    [SCSI_dw_sense_lw], 0x0000
+ 195 0854 07e7 0000 153a     mov    [SCSI_dw_sense_uw], 0x0000 ; dwSense = 0
  196                         ;; int	   SUSB2_FINISH_INT
  197                         ;; ----------------------------------
  198                         ;; Done with class request handler
@@ -751,7 +759,7 @@ QTASM rev 1.18x
   64                     ;*****************************************************************************
   65 08d6                usb_send_data:
   66 08d6 07e7 0000 090e     mov    w[usbsend_link], 0	; must be 0x0000 for send routine
-  67 08dc 07e7 14ea 0910     mov    w[usbsend_addr], send_buffer
+  67 08dc 07e7 15c6 0910     mov    w[usbsend_addr], send_buffer
   68 08e2 09c0 08d4          mov    r0, w[send_buffer_offset]
   69 08e6 1027 0910          add    w[usbsend_addr], r0
   70 08ea 07e7 090c 0914     mov    w[usbsend_call], usb_send_done ;; set up callback
@@ -832,7 +840,7 @@ QTASM rev 1.18x
  145                     ;*****************************************************************************
  146 0954                zap_send_buffer:
  147 0954 07c1 0100          mov    r1, 0x0100
- 148 0958 07c9 14ea          mov    r9, send_buffer
+ 148 0958 07c9 15c6          mov    r9, send_buffer
  149 095c                @@:
  150 095c 07e1 0000          mov    w[r9++], 0x0000
  151 0960 da01               dec    r1
@@ -910,12 +918,12 @@ QTASM rev 1.18x
   51                         ;; Determine what the response should be.
   52                         ;; This depends first on the SCSI state machine's state.
   53 0970 9249               xor    r9, r9
-  54 0972 0bc9 1460          mov    r9, b[scsi_state]
+  54 0972 0bc9 153c          mov    r9, b[scsi_state]
   55 0976 57c9 0004          cmp    r9, 4
   56 097a cd05               jle    scsi_rx_state_0_to_4	; make sure state is 0..4
   57                         ;; recover from weird state - should never get here:
-  58 097c 07ef 0000 1460     mov    b[scsi_state], SCSI_state_CBW
-  59 0982 0bc9 1460          mov    r9, b[scsi_state]
+  58 097c 07ef 0000 153c     mov    b[scsi_state], SCSI_state_CBW
+  59 0982 0bc9 153c          mov    r9, b[scsi_state]
   60 0986                scsi_rx_state_0_to_4:
   61 0986 d209               shl    r9, 1		; table offset times two (addresses are words.)
   62 0988 cfb1 098c          jmpl   [r9 + scsi_rx_state_jmp_table]
@@ -928,30 +936,30 @@ QTASM rev 1.18x
   69 0994 0abc               dw     do_rx_state_stalled
   70                         ;; ------------------------
   71 0996                do_rx_state_CBW:
-  72 0996 07e7 16ea 094e     mov    w[usbrecv_addr], receive_buffer
+  72 0996 07e7 17c6 094e     mov    w[usbrecv_addr], receive_buffer
   73 099c 07e7 001f 0950     mov    w[usbrecv_len], CBW_Size	; how many bytes to receive
   74 09a2 af9f 0920          call   usb_receive_data	; read CBW from host Bulk OUT endpoint
   75                         
   76                         ;; Check for valid CBW:
   77 09a6 57c0 0000          cmp    r0, 0		; how many bytes (of 31) failed to read?
   78 09aa c118               jne    invalid_cbw		; if any unread bytes, invalid.
-  79 09ac 57e7 5355 16ea     cmp    w[MSC_CBW_Signature_lw], CBW_Signature_lw_expected
+  79 09ac 57e7 5355 17c6     cmp    w[MSC_CBW_Signature_lw], CBW_Signature_lw_expected
   80 09b2 c114               jne    invalid_cbw		; lower word of signature is invalid
-  81 09b4 57e7 4342 16ec     cmp    w[MSC_CBW_Signature_uw], CBW_Signature_uw_expected
+  81 09b4 57e7 4342 17c8     cmp    w[MSC_CBW_Signature_uw], CBW_Signature_uw_expected
   82 09ba c110               jne    invalid_cbw		; upper word of signature is invalid
-  83 09bc 0bc0 16f7          mov    r0, b[CBW_lun]
+  83 09bc 0bc0 17d3          mov    r0, b[CBW_lun]
   84 09c0 67c0 000f          and    r0, 0x0F
   85 09c4 57c0 0000          cmp    r0, 0		; LUN == 0?
   86 09c8 c109               jne    invalid_cbw		; if not, then CBW is 'not meaningful.'
-  87 09ca 57ef 0001 16f8     cmp    b[CBW_cb_length], 1	; if bCBWCBLength < 1:
+  87 09ca 57ef 0001 17d4     cmp    b[CBW_cb_length], 1	; if bCBWCBLength < 1:
   88 09d0 c205               jb     invalid_cbw		; then invalid
-  89 09d2 57ef 0010 16f8     cmp    b[CBW_cb_length], 16	; if bCBWCBLength > 16:
+  89 09d2 57ef 0010 17d4     cmp    b[CBW_cb_length], 16	; if bCBWCBLength > 16:
   90 09d8 ca01               jg     invalid_cbw		; then invalid
   91 09da cf08               jmp    valid_cbw ;; CBW is Valid and Meaningful
   92 09dc                invalid_cbw: ;; Or not:
   93 09dc af9f 0b3c          call   stall_bulk_in_ep
   94 09e0 af9f 0b36          call   stall_bulk_out_ep
-  95 09e4 07ef 0004 1460     mov    b[scsi_state], SCSI_state_stalled
+  95 09e4 07ef 0004 153c     mov    b[scsi_state], SCSI_state_stalled
   96 09ea cf97               ret
   97 09ec                valid_cbw:
   98                         ;; clear dwOffset and dwTransferSize:
@@ -962,7 +970,7 @@ QTASM rev 1.18x
  103 09fa 0027 0968          mov    w[dwTransferSize_uw], r0
  104                         ;; fHostIN = ((CBW.bmCBWFlags & 0x80) != 0);
  105 09fe 07ef 0000 096e     mov    b[host_in_flag], 0x00
- 106 0a04 0bc0 16f6          mov    r0, b[CBW_flags] ; Whether to stall IN endpoint:
+ 106 0a04 0bc0 17d2          mov    r0, b[CBW_flags] ; Whether to stall IN endpoint:
  107 0a08 77c0 0080          test   r0, 0x80         ; Bit 7 = 0 for an OUT (host-to-device) transfer.
  108 0a0c c003               jz	   @f               ; Bit 7 = 1 for an IN (device-to-host) transfer.
  109 0a0e 07ef 0001 096e     mov    b[host_in_flag], 0x01
@@ -996,8 +1004,8 @@ QTASM rev 1.18x
  137                         ;; if D > H, send Phase Error status.
  138 0a56 09c2 0cea          mov    r2, w[response_length_lw] ; R3:R2 = dwTransferSize
  139 0a5a 09c3 0cec          mov    r3, w[response_length_uw] ; upper word of response length
- 140 0a5e 09c0 16f2          mov    r0, w[CBW_data_transfer_length_lw]
- 141 0a62 09c1 16f4          mov    r1, w[CBW_data_transfer_length_uw] ; R1:R0 = dwCBWDataTransferLength
+ 140 0a5e 09c0 17ce          mov    r0, w[CBW_data_transfer_length_lw]
+ 141 0a62 09c1 17d0          mov    r1, w[CBW_data_transfer_length_uw] ; R1:R0 = dwCBWDataTransferLength
  142                         ;; R1:R0 - R3:R2
  143 0a66 af9f 0bb2          call   subtract_16
  144 0a6a c307               jnc    @f	  ; If result < 0?
@@ -1020,10 +1028,10 @@ QTASM rev 1.18x
  161 0a98 77ef 0001 0cee     test   b[dev_in_flag], 1
  162 0a9e c104               jnz    device_to_host
  163                         ;; otherwise, data from host to device:
- 164 0aa0 07ef 0001 1460     mov    b[scsi_state], SCSI_state_data_out
+ 164 0aa0 07ef 0001 153c     mov    b[scsi_state], SCSI_state_data_out
  165 0aa6 cf97               ret
  166 0aa8                device_to_host:
- 167 0aa8 07ef 0002 1460     mov    b[scsi_state], SCSI_state_data_in
+ 167 0aa8 07ef 0002 153c     mov    b[scsi_state], SCSI_state_data_in
  168 0aae af9f 0c5e          call   handle_data_in
  169 0ab2 cf97               ret
  170 0ab4                do_rx_state_data_out:
@@ -1047,12 +1055,12 @@ QTASM rev 1.18x
  188                         ;; Determine what the response should be.
  189                         ;; This depends first on the SCSI state machine's state.
  190 0ac2 9249               xor    r9, r9
- 191 0ac4 0bc9 1460          mov    r9, b[scsi_state]
+ 191 0ac4 0bc9 153c          mov    r9, b[scsi_state]
  192 0ac8 57c9 0004          cmp    r9, 4
  193 0acc cd05               jle    scsi_tx_state_0_to_4	; make sure state is 0..4
  194                         ;; recover from weird state - should never get here:
- 195 0ace 07ef 0000 1460     mov    b[scsi_state], SCSI_state_CBW
- 196 0ad4 0bc9 1460          mov    r9, b[scsi_state]
+ 195 0ace 07ef 0000 153c     mov    b[scsi_state], SCSI_state_CBW
+ 196 0ad4 0bc9 153c          mov    r9, b[scsi_state]
  197 0ad8                scsi_tx_state_0_to_4:
  198 0ad8 d209               shl    r9, 1		; table offset times two (addresses are words.)
  199 0ada cfb1 0ade          jmpl   [r9 + scsi_tx_state_jmp_table]
@@ -1074,7 +1082,7 @@ QTASM rev 1.18x
  215 0af0 07e7 000d 0912     mov	   w[usbsend_len], CSW_Size
  216 0af6 07e7 0000 08d4     mov    w[send_buffer_offset], 0x0000
  217 0afc af9f 0916          call   bulk_send  ;; send the CSW:
- 218 0b00 07ef 0000 1460     mov    b[scsi_state], SCSI_state_CBW
+ 218 0b00 07ef 0000 153c     mov    b[scsi_state], SCSI_state_CBW
  219 0b06 cf97               ret
  220 0b08                do_tx_state_stalled:
  221 0b08 af9f 0b3c          call   stall_bulk_in_ep ; if stalled, keep stalling:
@@ -1087,12 +1095,12 @@ QTASM rev 1.18x
  228                     ;*****************************************************************************
  229 0b0e                stall_transfer:
  230 0b0e 9000               xor    r0,r0
- 231 0b10 0bc0 16f6          mov    r0, b[CBW_flags]  ; Whether to stall IN endpoint:
+ 231 0b10 0bc0 17d2          mov    r0, b[CBW_flags]  ; Whether to stall IN endpoint:
  232 0b14 77c0 0080          test   r0, 0x80         ; Bit 7 = 0 for an OUT (host-to-device) transfer.
  233 0b18 c111               jnz	   stall_bulk_in_ep ; Bit 7 = 1 for an IN (device-to-host) transfer.
- 234 0b1a 57e7 0000 16f2     cmp    w[CBW_data_transfer_length_lw], 0x0000 ; if lower word != 0, then stall EP_OUT
+ 234 0b1a 57e7 0000 17ce     cmp    w[CBW_data_transfer_length_lw], 0x0000 ; if lower word != 0, then stall EP_OUT
  235 0b20 c107               jne    stall_out
- 236 0b22 57e7 0000 16f4     cmp    w[CBW_data_transfer_length_uw], 0x0000 ; if upper word != 0, then stall EP_OUT
+ 236 0b22 57e7 0000 17d0     cmp    w[CBW_data_transfer_length_uw], 0x0000 ; if upper word != 0, then stall EP_OUT
  237 0b28 c103               jne    stall_out
  238                         ;; otherwise, if CBW_data_transfer_length == 0, stall EP_IN:
  239 0b2a af9f 0b3c          call   stall_bulk_in_ep
@@ -1125,25 +1133,25 @@ QTASM rev 1.18x
  266                     ;*****************************************************************************
  267 0b4e                send_csw:
  268 0b4e 67c0 00ff          and    r0, 0x00FF
- 269 0b52 002f 14f6          mov    b[CSW_status], r0
- 270 0b56 07e7 5355 14ea     mov    w[MSC_CSW_Signature_lw], CSW_Signature_lw_expected ; signature lower word
- 271 0b5c 07e7 5342 14ec     mov    w[MSC_CSW_Signature_uw], CSW_Signature_uw_expected ; signature upper word
- 272 0b62 09e7 16ee 14ee     mov    w[CSW_tag_lw], w[CBW_tag_lw]	; copy lower word of tag from last CBW
- 273 0b68 09e7 16f0 14f0     mov    w[CSW_tag_uw], w[CBW_tag_uw] ; copy upper word of tag from last CBW
+ 269 0b52 002f 15d2          mov    b[CSW_status], r0
+ 270 0b56 07e7 5355 15c6     mov    w[MSC_CSW_Signature_lw], CSW_Signature_lw_expected ; signature lower word
+ 271 0b5c 07e7 5342 15c8     mov    w[MSC_CSW_Signature_uw], CSW_Signature_uw_expected ; signature upper word
+ 272 0b62 09e7 17ca 15ca     mov    w[CSW_tag_lw], w[CBW_tag_lw]	; copy lower word of tag from last CBW
+ 273 0b68 09e7 17cc 15cc     mov    w[CSW_tag_uw], w[CBW_tag_uw] ; copy upper word of tag from last CBW
  274                         ;; iResidue = max( 0, (dwCBWDataTransferLength - dwTransferSize) )
  275 0b6e 09c2 0966          mov    r2, w[dwTransferSize_lw]
  276 0b72 09c3 0968          mov    r3, w[dwTransferSize_uw] ; R3:R2 = dwTransferSize
- 277 0b76 09c0 16f2          mov    r0, w[CBW_data_transfer_length_lw]
- 278 0b7a 09c1 16f4          mov    r1, w[CBW_data_transfer_length_uw] ; R1:R0 = dwCBWDataTransferLength
+ 277 0b76 09c0 17ce          mov    r0, w[CBW_data_transfer_length_lw]
+ 278 0b7a 09c1 17d0          mov    r1, w[CBW_data_transfer_length_uw] ; R1:R0 = dwCBWDataTransferLength
  279                         ;; R1:R0 - R3:R2
  280 0b7e af9f 0bb2          call   subtract_16
  281 0b82 c302               jnc    @f	  ; If result < 0?
  282 0b84 9000               xor    r0, r0 ; then iResidue = 0.
  283 0b86 9041               xor    r1, r1
  284 0b88                @@: ; iResidue >= 0:
- 285 0b88 0027 14f2          mov    w[CSW_data_residue_lw], r0
- 286 0b8c 0067 14f4          mov    w[CSW_data_residue_uw], r1
- 287 0b90 07ef 0003 1460     mov    b[scsi_state], SCSI_state_CSW ; next SCSI state = CSW
+ 285 0b88 0027 15ce          mov    w[CSW_data_residue_lw], r0
+ 286 0b8c 0067 15d0          mov    w[CSW_data_residue_uw], r1
+ 287 0b90 07ef 0003 153c     mov    b[scsi_state], SCSI_state_CSW ; next SCSI state = CSW
  288 0b96 cf97               ret
  289                     ;*****************************************************************************
 
@@ -1279,7 +1287,7 @@ QTASM rev 1.18x
   54 0be4                @@:
   55 0be4 09c0 0bb8          mov    r0, w[iChunk] ; number of bytes to receive from bulk_out_ep
   56 0be8 0027 0950          mov    w[usbrecv_len], r0 ; how many bytes to receive
-  57 0bec 07e7 18ea 094e     mov    w[usbrecv_addr], block_receive_buffer ; into Block buffer!
+  57 0bec 07e7 19c6 094e     mov    w[usbrecv_addr], block_receive_buffer ; into Block buffer!
   58                     
   59 0bf2 09c0 096a          mov    r0, w[dwOffset_lw] ; only need lower word of dwoffset to calculate offset into block
   60 0bf6 67c0 01ff          and    r0, 0x01FF ;; dwBufPos = (dwOffset & (BLOCKSIZE - 1))
@@ -1303,10 +1311,10 @@ QTASM rev 1.18x
   78 0c32 59e7 0968 096c     cmp    w[dwOffset_uw], w[dwTransferSize_uw]
   79 0c38 c10e               jne    data_out_done
   80                         ;; if (dwOffset == dwTransferSize)
-  81 0c3a 09c0 16f2          mov    r0, w[CBW_data_transfer_length_lw]
+  81 0c3a 09c0 17ce          mov    r0, w[CBW_data_transfer_length_lw]
   82 0c3e 5027 096a          cmp    w[dwOffset_lw], r0
   83 0c42 c10a               jne    data_out_stall
-  84 0c44 09c0 16f4          mov    r0, w[CBW_data_transfer_length_uw]
+  84 0c44 09c0 17d0          mov    r0, w[CBW_data_transfer_length_uw]
   85 0c48 5027 096c          cmp    w[dwOffset_uw], r0
   86 0c4c c105               jne    data_out_stall
   87 0c4e                data_out_send_csw:
@@ -1435,7 +1443,7 @@ QTASM rev 1.18x
   50 0d06 07ef 0000 0cf0     mov    b[cmd_must_stall_flag], 0x00	 ; default - no stall
   51 0d0c 07ef 0001 0cee     mov    b[dev_in_flag], 0x01	; default direction is device -> host
   52 0d12 9000               xor    r0, r0
-  53 0d14 0bc0 16f9          mov    r0, b[Common_SCSI_CDB_op_code]
+  53 0d14 0bc0 17d5          mov    r0, b[Common_SCSI_CDB_op_code]
   54 0d18 dfc3               clc
   55 0d1a d100               shr    r0, 5
   56 0d1c 67c0 0007          and    r0, 0x7		       ; bGroupCode
@@ -1443,10 +1451,10 @@ QTASM rev 1.18x
   58 0d22 17cb 0cf2          add    r11, aiCDBLen_table	       ; table origin
   59 0d26 9041               xor    r1, r1
   60 0d28 06c1               mov    r1, b[r11]                  ; aiCDBLen[bGroupCode]
-  61 0d2a 506f 16f8          cmp    b[CBW_cb_length], r1	       ; if (CDBLen < aiCDBLen[bGroupCode])
+  61 0d2a 506f 17d4          cmp    b[CBW_cb_length], r1	       ; if (CDBLen < aiCDBLen[bGroupCode])
   62 0d2e c23b               jb     bad_scsi_cmd		       ; return NULL (bad cmd)
   63 0d30 9000               xor    r0, r0
-  64 0d32 0bc0 16f9          mov    r0, b[Common_SCSI_CDB_op_code]
+  64 0d32 0bc0 17d5          mov    r0, b[Common_SCSI_CDB_op_code]
   65 0d36 57c0 0000          cmp    r0, SCSI_CMD_TEST_UNIT_READY
   66 0d3a c039               je     SCSI_command_test_unit_ready
   67 0d3c 57c0 0003          cmp    r0, SCSI_CMD_REQUEST_SENSE
@@ -1474,8 +1482,8 @@ QTASM rev 1.18x
   89 0d92 57c0 00a0          cmp    r0, SCSI_CMD_REPORT_LUNS
   90 0d96 c09f 0e66          je     SCSI_command_report_luns
   91 0d9a                scsi_cmd_not_implemented: ;; None of these (unhandled / bad):
-  92 0d9a 07e7 2000 145c     mov    w[SCSI_dw_sense_lw], SENSE_INVALID_CMD_OPCODE_lw
-  93 0da0 07e7 0005 145e     mov    w[SCSI_dw_sense_uw], SENSE_INVALID_CMD_OPCODE_uw ;; dwSense = INVALID_CMD_OPCODE;
+  92 0d9a 07e7 2000 1538     mov    w[SCSI_dw_sense_lw], SENSE_INVALID_CMD_OPCODE_lw
+  93 0da0 07e7 0005 153a     mov    w[SCSI_dw_sense_uw], SENSE_INVALID_CMD_OPCODE_uw ;; dwSense = INVALID_CMD_OPCODE;
   94 0da6                bad_scsi_cmd:
   95 0da6 07ef 0001 0cf0     mov    b[cmd_must_stall_flag], 0x01 ; Must stall
   96 0dac cf97               ret
@@ -1491,7 +1499,7 @@ QTASM rev 1.18x
  106 0db0 07e7 0000 0cec     mov    w[response_length_uw], 0x0000
  107 0db6 07e7 0012 0cea     mov    w[response_length_lw], 18
  108 0dbc 9000               xor    r0, r0
- 109 0dbe 0bc0 16fd          mov    r0, b[Request_Sense_SCSI_CDB_bLength]
+ 109 0dbe 0bc0 17d9          mov    r0, b[Request_Sense_SCSI_CDB_bLength]
  110 0dc2 5027 0cea          cmp    w[response_length_lw], r0
  111 0dc6 c902               jbe    @f
  112 0dc8 0027 0cea          mov    w[response_length_lw], r0
@@ -1504,7 +1512,7 @@ QTASM rev 1.18x
  119 0dd0 07e7 0000 0cec     mov    w[response_length_uw], 0x0000
  120 0dd6 07e7 0024 0cea     mov    w[response_length_lw], 36
  121 0ddc 9000               xor    r0, r0
- 122 0dde 0bc0 16fd          mov    r0, b[Inquiry_SCSI_CDB_bLength]
+ 122 0dde 0bc0 17d9          mov    r0, b[Inquiry_SCSI_CDB_bLength]
  123 0de2 5027 0cea          cmp    w[response_length_lw], r0
  124 0de6 c902               jbe    @f
  125 0de8 0027 0cea          mov    w[response_length_lw], r0
@@ -1527,9 +1535,9 @@ QTASM rev 1.18x
  142                         ;; Calculate response length: BLOCKSIZE will always be 512
  143 0e10 9000               xor    r0, r0 ; will be lower word of rsplen
  144 0e12 9041               xor    r1, r1 ; will be upper word of rsplen
- 145 0e14 0bc1 1700          mov    r1, b[Read10_SCSI_CDB_Transfer_Len_1] ; upper byte of transfer length
+ 145 0e14 0bc1 17dc          mov    r1, b[Read10_SCSI_CDB_Transfer_Len_1] ; upper byte of transfer length
  146 0e18 d201               shl    r1, 1				 ; shift by 1 (already shifted by 8)
- 147 0e1a 0bc0 1701          mov    r0, b[Read10_SCSI_CDB_Transfer_Len_0] ; lower byte of transfer length
+ 147 0e1a 0bc0 17dd          mov    r0, b[Read10_SCSI_CDB_Transfer_Len_0] ; lower byte of transfer length
  148 0e1e d3c0               shl    r0, 8
  149 0e20 dfc3               clc
  150 0e22 d200               shl    r0, 1
@@ -1545,9 +1553,9 @@ QTASM rev 1.18x
  160                         ;; Calculate response length: BLOCKSIZE will always be 512
  161 0e38 9000               xor    r0, r0 ; will be lower word of rsplen
  162 0e3a 9041               xor    r1, r1 ; will be upper word of rsplen
- 163 0e3c 0bc1 1700          mov    r1, b[Write10_SCSI_CDB_Transfer_Len_1] ; upper byte of transfer length
+ 163 0e3c 0bc1 17dc          mov    r1, b[Write10_SCSI_CDB_Transfer_Len_1] ; upper byte of transfer length
  164 0e40 d201               shl    r1, 1				 ; shift by 1 (already shifted by 8)
- 165 0e42 0bc0 1701          mov    r0, b[Write10_SCSI_CDB_Transfer_Len_0] ; lower byte of transfer length
+ 165 0e42 0bc0 17dd          mov    r0, b[Write10_SCSI_CDB_Transfer_Len_0] ; lower byte of transfer length
  166 0e46 d3c0               shl    r0, 8
  167 0e48 dfc3               clc
  168 0e4a d200               shl    r0, 1
@@ -1576,7 +1584,7 @@ QTASM rev 1.18x
  191 0e6e                SCSI_handle_data:
  192 0e6e 07ef 0000 0e6c     mov    b[dat_must_stall_flag], 0x00
  193 0e74 9000               xor    r0, r0
- 194 0e76 0bc0 16f9          mov    r0, b[Common_SCSI_CDB_op_code]
+ 194 0e76 0bc0 17d5          mov    r0, b[Common_SCSI_CDB_op_code]
  195 0e7a 57c0 0000          cmp    r0, SCSI_CMD_TEST_UNIT_READY
  196 0e7e c09f 0f12          je     SCSI_data_cmd_test_unit_ready
  197 0e82 57c0 0003          cmp    r0, SCSI_CMD_REQUEST_SENSE
@@ -1604,86 +1612,86 @@ QTASM rev 1.18x
  219 0eda 57c0 00a0          cmp    r0, SCSI_CMD_REPORT_LUNS
  220 0ede c09f 10a0          je     SCSI_data_cmd_report_luns
  221 0ee2                scsi_data_cmd_not_implemented: ;; None of these (unhandled / bad):
- 222 0ee2 07e7 2000 145c     mov    w[SCSI_dw_sense_lw], SENSE_INVALID_CMD_OPCODE_lw
- 223 0ee8 07e7 0005 145e     mov    w[SCSI_dw_sense_uw], SENSE_INVALID_CMD_OPCODE_uw ;; dwSense = INVALID_CMD_OPCODE;
+ 222 0ee2 07e7 2000 1538     mov    w[SCSI_dw_sense_lw], SENSE_INVALID_CMD_OPCODE_lw
+ 223 0ee8 07e7 0005 153a     mov    w[SCSI_dw_sense_uw], SENSE_INVALID_CMD_OPCODE_uw ;; dwSense = INVALID_CMD_OPCODE;
  224 0eee                bad_scsi_dat_cmd:
  225 0eee 07ef 0001 0e6c     mov    b[dat_must_stall_flag], 0x01 ; Must stall
  226 0ef4 cf97               ret
  227 0ef6                scsi_read_error:
- 228 0ef6 07e7 1100 145c     mov    w[SCSI_dw_sense_lw], SENSE_READ_ERROR_lw
- 229 0efc 07e7 0003 145e     mov    w[SCSI_dw_sense_uw], SENSE_READ_ERROR_uw
+ 228 0ef6 07e7 1100 1538     mov    w[SCSI_dw_sense_lw], SENSE_READ_ERROR_lw
+ 229 0efc 07e7 0003 153a     mov    w[SCSI_dw_sense_uw], SENSE_READ_ERROR_uw
  230 0f02 cf75               jmp    bad_scsi_dat_cmd
  231 0f04                scsi_write_error:
- 232 0f04 07e7 0c00 145c     mov    w[SCSI_dw_sense_lw], SENSE_WRITE_ERROR_lw
- 233 0f0a 07e7 0003 145e     mov    w[SCSI_dw_sense_uw], SENSE_WRITE_ERROR_uw
+ 232 0f04 07e7 0c00 1538     mov    w[SCSI_dw_sense_lw], SENSE_WRITE_ERROR_lw
+ 233 0f0a 07e7 0003 153a     mov    w[SCSI_dw_sense_uw], SENSE_WRITE_ERROR_uw
  234 0f10 cf6e               jmp    bad_scsi_dat_cmd
  235                     ;; SCSI data command handlers:
  236 0f12                SCSI_data_cmd_test_unit_ready:
- 237 0f12 57e7 0000 145c     cmp    w[SCSI_dw_sense_lw], 0
+ 237 0f12 57e7 0000 1538     cmp    w[SCSI_dw_sense_lw], 0
  238 0f18 c007               je     @f
- 239 0f1a 57e7 0000 145e     cmp    w[SCSI_dw_sense_uw], 0
+ 239 0f1a 57e7 0000 153a     cmp    w[SCSI_dw_sense_uw], 0
  240 0f20 c003               je     @f
  241 0f22 07ef 0001 0e6c     mov    b[dat_must_stall_flag], 0x01 ;; if (dwSense !=0) return NULL;
  242 0f28                @@:
  243 0f28 cf97               ret
  244 0f2a                SCSI_data_cmd_request_sense:
  245                         ;; Build reply to request_sense command:
- 246 0f2a 07ef 0070 14ea     mov    b[(send_buffer)], 0x70
- 247 0f30 07ef 0000 14eb     mov    b[(send_buffer + 1)], 0x00
- 248 0f36 0bef 145d 14ec     mov    b[(send_buffer + 2)], b[dwSense_KEY]
- 249 0f3c 07ef 0000 14ed     mov    b[(send_buffer + 3)], 0x00
- 250 0f42 07ef 0000 14ee     mov    b[(send_buffer + 4)], 0x00
- 251 0f48 07ef 0000 14ef     mov    b[(send_buffer + 5)], 0x00
- 252 0f4e 07ef 0000 14f0     mov    b[(send_buffer + 6)], 0x00
- 253 0f54 07ef 000a 14f1     mov    b[(send_buffer + 7)], 0x0A
- 254 0f5a 07ef 0000 14f2     mov    b[(send_buffer + 8)], 0x00
- 255 0f60 07ef 0000 14f3     mov    b[(send_buffer + 9)], 0x00
- 256 0f66 07ef 0000 14f4     mov    b[(send_buffer + 10)], 0x00
- 257 0f6c 07ef 0000 14f5     mov    b[(send_buffer + 11)], 0x00
- 258 0f72 0bef 145e 14f6     mov    b[(send_buffer + 12)], b[dwSense_ASC]
- 259 0f78 0bef 145f 14f7     mov    b[(send_buffer + 13)], b[dwSense_ASCQ]
- 260 0f7e 07ef 0000 14f8     mov    b[(send_buffer + 14)], 0x00
- 261 0f84 07ef 0000 14f9     mov    b[(send_buffer + 15)], 0x00
- 262 0f8a 07ef 0000 14fa     mov    b[(send_buffer + 16)], 0x00
- 263 0f90 07ef 0000 14fb     mov    b[(send_buffer + 17)], 0x00
+ 246 0f2a 07ef 0070 15c6     mov    b[(send_buffer)], 0x70
+ 247 0f30 07ef 0000 15c7     mov    b[(send_buffer + 1)], 0x00
+ 248 0f36 0bef 1539 15c8     mov    b[(send_buffer + 2)], b[dwSense_KEY]
+ 249 0f3c 07ef 0000 15c9     mov    b[(send_buffer + 3)], 0x00
+ 250 0f42 07ef 0000 15ca     mov    b[(send_buffer + 4)], 0x00
+ 251 0f48 07ef 0000 15cb     mov    b[(send_buffer + 5)], 0x00
+ 252 0f4e 07ef 0000 15cc     mov    b[(send_buffer + 6)], 0x00
+ 253 0f54 07ef 000a 15cd     mov    b[(send_buffer + 7)], 0x0A
+ 254 0f5a 07ef 0000 15ce     mov    b[(send_buffer + 8)], 0x00
+ 255 0f60 07ef 0000 15cf     mov    b[(send_buffer + 9)], 0x00
+ 256 0f66 07ef 0000 15d0     mov    b[(send_buffer + 10)], 0x00
+ 257 0f6c 07ef 0000 15d1     mov    b[(send_buffer + 11)], 0x00
+ 258 0f72 0bef 153a 15d2     mov    b[(send_buffer + 12)], b[dwSense_ASC]
+ 259 0f78 0bef 153b 15d3     mov    b[(send_buffer + 13)], b[dwSense_ASCQ]
+ 260 0f7e 07ef 0000 15d4     mov    b[(send_buffer + 14)], 0x00
+ 261 0f84 07ef 0000 15d5     mov    b[(send_buffer + 15)], 0x00
+ 262 0f8a 07ef 0000 15d6     mov    b[(send_buffer + 16)], 0x00
+ 263 0f90 07ef 0000 15d7     mov    b[(send_buffer + 17)], 0x00
  264                         ;; reset dwSense
  265 0f96 9000               xor    r0, r0
- 266 0f98 0027 145c          mov    w[SCSI_dw_sense_lw], r0
- 267 0f9c 0027 145e          mov    w[SCSI_dw_sense_uw], r0
+ 266 0f98 0027 1538          mov    w[SCSI_dw_sense_lw], r0
+ 267 0f9c 0027 153a          mov    w[SCSI_dw_sense_uw], r0
  268 0fa0 cf97               ret
  269 0fa2                SCSI_data_cmd_format_unit: ;; nothing happens
  270 0fa2 cf97               ret
  271 0fa4                SCSI_data_cmd_inquiry:
- 272 0fa4 07c9 14ea          mov    r9, send_buffer
- 273 0fa8 07c8 1462          mov    r8, SCSI_inquiry_response
+ 272 0fa4 07c9 15c6          mov    r9, send_buffer
+ 273 0fa8 07c8 153e          mov    r8, SCSI_inquiry_response
  274 0fac 9041               xor    r1, r1
  275 0fae 07c1 0012          mov    r1, (INQ_ADD_LEN >> 1) ; number of WORDS to mem_move
  276 0fb2 af9f 0baa          call   mem_move
  277 0fb6 cf97               ret
  278 0fb8                SCSI_data_cmd_mode_sense_6:
  279 0fb8 af9f 0954          call   zap_send_buffer
- 280 0fbc 07ef 0003 14ea     mov    b[(send_buffer)], 0x03 ; Number of bytes which follow
- 281 0fc2 07ef 0000 14eb     mov    b[(send_buffer + 1)], 0x00 ; Medium Type: 00h for SBC devices.
- 282 0fc8 07ef 0000 14ec     mov    b[(send_buffer + 2)], 0x00 ; Device-Specific Parameter - no WP, no cache
- 283 0fce 07ef 0000 14ed     mov    b[(send_buffer + 3)], 0x00 ; No mode-parameter block descriptors.
- 284 0fd4 07ef 0000 14ee     mov    b[(send_buffer + 4)], 0x00 ; No blocks
- 285 0fda 07ef 0000 14ef     mov    b[(send_buffer + 5)], 0x00 ; No blocks
- 286 0fe0 07ef 0000 14f0     mov    b[(send_buffer + 6)], 0x00 ; No blocks
- 287 0fe6 07ef 0000 14f1     mov    b[(send_buffer + 7)], 0x00 ; No blocks
+ 280 0fbc 07ef 0003 15c6     mov    b[(send_buffer)], 0x03 ; Number of bytes which follow
+ 281 0fc2 07ef 0000 15c7     mov    b[(send_buffer + 1)], 0x00 ; Medium Type: 00h for SBC devices.
+ 282 0fc8 07ef 0000 15c8     mov    b[(send_buffer + 2)], 0x00 ; Device-Specific Parameter - no WP, no cache
+ 283 0fce 07ef 0000 15c9     mov    b[(send_buffer + 3)], 0x00 ; No mode-parameter block descriptors.
+ 284 0fd4 07ef 0000 15ca     mov    b[(send_buffer + 4)], 0x00 ; No blocks
+ 285 0fda 07ef 0000 15cb     mov    b[(send_buffer + 5)], 0x00 ; No blocks
+ 286 0fe0 07ef 0000 15cc     mov    b[(send_buffer + 6)], 0x00 ; No blocks
+ 287 0fe6 07ef 0000 15cd     mov    b[(send_buffer + 7)], 0x00 ; No blocks
  288 0fec cf97               ret
  289 0fee                SCSI_data_cmd_p_or_a_medium_rmvl: ;; nothing happens
  290 0fee cf97               ret
  291 0ff0                SCSI_data_cmd_read_capacity:
  292                         ;; maximal block:
- 293 0ff0 07ef 0000 14ea     mov    b[(send_buffer)], MAXBLOCK_3
- 294 0ff6 07ef 003f 14eb     mov    b[(send_buffer + 1)], MAXBLOCK_2
- 295 0ffc 07ef 00ff 14ec     mov    b[(send_buffer + 2)], MAXBLOCK_1
- 296 1002 07ef 00ff 14ed     mov    b[(send_buffer + 3)], MAXBLOCK_0
+ 293 0ff0 07ef 0000 15c6     mov    b[(send_buffer)], MAXBLOCK_3
+ 294 0ff6 07ef 003f 15c7     mov    b[(send_buffer + 1)], MAXBLOCK_2
+ 295 0ffc 07ef 00ff 15c8     mov    b[(send_buffer + 2)], MAXBLOCK_1
+ 296 1002 07ef 00ff 15c9     mov    b[(send_buffer + 3)], MAXBLOCK_0
  297                         ;; block size: (always 512)
- 298 1008 07ef 0000 14ee     mov    b[(send_buffer + 4)], ((BLOCKSIZE >> 24) && 0xFF)
- 299 100e 07ef 0000 14ef     mov    b[(send_buffer + 5)], ((BLOCKSIZE >> 16) && 0xFF)
- 300 1014 07ef 0002 14f0     mov    b[(send_buffer + 6)], ((BLOCKSIZE >> 8) && 0xFF)
- 301 101a 07ef 0000 14f1     mov    b[(send_buffer + 7)], (BLOCKSIZE && 0xFF)
+ 298 1008 07ef 0000 15ca     mov    b[(send_buffer + 4)], ((BLOCKSIZE >> 24) && 0xFF)
+ 299 100e 07ef 0000 15cb     mov    b[(send_buffer + 5)], ((BLOCKSIZE >> 16) && 0xFF)
+ 300 1014 07ef 0002 15cc     mov    b[(send_buffer + 6)], ((BLOCKSIZE >> 8) && 0xFF)
+ 301 101a 07ef 0000 15cd     mov    b[(send_buffer + 7)], (BLOCKSIZE && 0xFF)
  302 1020 cf97               ret
  303 1022                SCSI_data_cmd_read_6:
  304 1022 cf9f 0ee2          jmp    scsi_data_cmd_not_implemented  ;;;;;; NOT IMPLEMENTED YET ;;;;;;
@@ -1696,18 +1704,18 @@ QTASM rev 1.18x
  311                         ;; load given LBA block index:
  312 1032 90c3               xor    r3, r3
  313 1034 9104               xor    r4, r4
- 314 1036 0bc4 16fb          mov    r4, b[Read10_SCSI_CDB_LBA_3]
+ 314 1036 0bc4 17d7          mov    r4, b[Read10_SCSI_CDB_LBA_3]
  315 103a d3c4               shl    r4, 8
- 316 103c 8bc4 16fc          or     r4, b[Read10_SCSI_CDB_LBA_2] ;; r4 = old lba high word
- 317 1040 0bc3 16fd          mov    r3, b[Read10_SCSI_CDB_LBA_1]
+ 316 103c 8bc4 17d8          or     r4, b[Read10_SCSI_CDB_LBA_2] ;; r4 = old lba high word
+ 317 1040 0bc3 17d9          mov    r3, b[Read10_SCSI_CDB_LBA_1]
  318 1044 d3c3               shl    r3, 8
- 319 1046 8bc3 16fe          or     r3, b[Read10_SCSI_CDB_LBA_0] ;; r3 = old lba low word
+ 319 1046 8bc3 17da          or     r3, b[Read10_SCSI_CDB_LBA_0] ;; r3 = old lba low word
  320 104a 00e7 10a6          mov    w[given_lba_lw], r3
  321 104e 0127 10a8          mov    w[given_lba_uw], r4
  322 1052 af9f 10ae          call   compute_actual_block_index	; compute corrected index
  323                         ;; now load:
  324                         ;; TODO: error condition if the blocks to be read extend past end of "disk"
- 325 1056 af9f 1184          call   load_lba_block ;; if (dwBufPos == 0) then read new block:
+ 325 1056 af9f 1208          call   load_lba_block ;; if (dwBufPos == 0) then read new block:
  326 105a                @@: ; not new block: offset into block is calculated in handle_data_in
  327 105a cf97               ret
  328 105c                SCSI_data_cmd_write_6:
@@ -1721,21 +1729,21 @@ QTASM rev 1.18x
  336                         ;; load given LBA block index:
  337 106c 90c3               xor    r3, r3
  338 106e 9104               xor    r4, r4
- 339 1070 0bc4 16fb          mov    r4, b[Write10_SCSI_CDB_LBA_3]
+ 339 1070 0bc4 17d7          mov    r4, b[Write10_SCSI_CDB_LBA_3]
  340 1074 d3c4               shl    r4, 8
- 341 1076 8bc4 16fc          or     r4, b[Write10_SCSI_CDB_LBA_2] ;; r4 = old lba high word
- 342 107a 0bc3 16fd          mov    r3, b[Write10_SCSI_CDB_LBA_1]
+ 341 1076 8bc4 17d8          or     r4, b[Write10_SCSI_CDB_LBA_2] ;; r4 = old lba high word
+ 342 107a 0bc3 17d9          mov    r3, b[Write10_SCSI_CDB_LBA_1]
  343 107e d3c3               shl    r3, 8
- 344 1080 8bc3 16fe          or     r3, b[Write10_SCSI_CDB_LBA_0] ;; r3 = old lba low word
+ 344 1080 8bc3 17da          or     r3, b[Write10_SCSI_CDB_LBA_0] ;; r3 = old lba low word
  345 1084 00e7 10a6          mov    w[given_lba_lw], r3
  346 1088 0127 10a8          mov    w[given_lba_uw], r4
  347 108c af9f 10ae          call   compute_actual_block_index	; compute corrected index
  348 1090                @@:
  349                         ;; Did we just finish receiving a block?
- 350 1090 57e7 1aea 094e     cmp    w[usbrecv_addr], (block_receive_buffer + BLOCKSIZE)
+ 350 1090 57e7 1bc6 094e     cmp    w[usbrecv_addr], (block_receive_buffer + BLOCKSIZE)
  351 1096 c102               jne    @f ; no. we're in mid-block.
  352                         ;; Yes, we did:
- 353 1098 af9f 121c          call   save_lba_block
+ 353 1098 af9f 12ca          call   save_lba_block
  354 109c                @@:
  355 109c cf97               ret
  356 109e                SCSI_data_cmd_verify_10: ;; nothing happens
@@ -1802,16 +1810,100 @@ QTASM rev 1.18x
  417 1106 19c3 10aa          add    r3, w[blocks_offset_lw] ; add lw of corrector to low word of LBA
  418 110a 29c4 10ac          addc   r4, w[blocks_offset_uw] ; add possible carry to high word of LBA
  419                         ;; write actual LBA to access:
- 420 110e 00e7 1126          mov    w[actual_lba_lw], r3
- 421 1112 0127 1128          mov    w[actual_lba_uw], r4
+ 420 110e 00e7 1184          mov    w[actual_lba_lw], r3
+ 421 1112 0127 1186          mov    w[actual_lba_uw], r4
  422 1116 cf97               ret
  423 1118                no_block_correction:
- 424 1118 09e7 10a6 1126     mov    w[actual_lba_lw], w[given_lba_lw]
- 425 111e 09e7 10a8 1128     mov    w[actual_lba_uw], w[given_lba_uw]
+ 424 1118 09e7 10a6 1184     mov    w[actual_lba_lw], w[given_lba_lw]
+ 425 111e 09e7 10a8 1186     mov    w[actual_lba_uw], w[given_lba_uw]
  426 1124 cf97               ret
  427                     ;*****************************************************************************
 
- 135                     include block.asm
+ 135                     include i2c.asm
+
+   0 1126                i2c_param:
+   1 1126 c028               dw 0xc028 ; General Purpose IO Control register high
+   2 1128 c024               dw 0xc024 ; General Purpose IO Data register high
+   3                         ; dw 0x0001 ; GPIO16 (SDA)
+   4                         ; dw 0x0002 ; GPIO17 (SCL)
+   5 112a 8000               dw 0x8000 ; GPIO31 (SDA)
+   6 112c 4000               dw 0x4000 ; GPIO30 (SCL)
+   7 112e a0                 db 0xa0   ; signature byte
+   8 112f 0e                 db 14     ; number of bits for address
+   9                     
+  10 1130                send_i2c_params:
+  11 1130 0097               push   r2
+  12 1132 0017               push   r0
+  13 1134 07c0 0002          mov    r0, 2        ; 2=set param
+  14 1138 07c1 1126          mov    r1,i2c_param ; new_parameter
+  15 113c af41               int    LI2C_INT     ; call I2C
+  16 113e 05c2               pop    r2
+  17 1140 05c0               pop    r0
+  18 1142 cf97               ret
+  19                     
+  20 1144                read_i2c_byte: ; r1 has the address
+  21 1144 0097               push   r2
+  22 1146 07c0 0000          mov    r0,0       ;0=read
+  23 114a af41               int    LI2C_INT   ; call I2C
+  24 114c 05c2               pop    r2
+  25 114e cf97               ret    	      ;return byte in R0
+  26                     
+  27                     
+  28                     ;*****************************************************************************
+  29                     ;; Load physical LBA block from I2C
+  30                     ;*****************************************************************************
+  31 1150                load_physical_lba_block_from_i2c:
+  32 1150 af9f 1130          call   send_i2c_params
+  33                     
+  34                     
+  35                         ; call   read_i2c_byte ; read byte from r1 to r0
+  36                         ; mov r2,r0
+  37                     
+  38                         ; inc    r1
+  39                         ; call   read_i2c_byte ; read byte from r1 to r0
+  40                     
+  41                     ;     mov    r1, 0x0080
+  42                     ;     mov    r9, send_buffer
+  43                     ;     mov r0, w[physical_lba_lw]
+  44                     ;     mov r2, w[physical_lba_uw]
+  45                     ; @@:
+  46                     ;     mov    w[r9++], r0
+  47                     ;     mov    w[r9++], r2
+  48                     ;     dec    r1
+  49                     ;     jnz    @b
+  50                     ;     ret
+  51                     
+  52 1154 07c3 0100          mov    r3, 0x0100
+  53 1158 07c9 15c6          mov    r9, send_buffer
+  54 115c 09c1 147e          mov    r1, w[physical_lba_lw] ;; assume w[physical_lba_uw] is 0
+  55                         ; r1 should be 0..31
+  56                         ; real address is LBA * 512
+  57 1160 d3c1               shl    r1, 8
+  58 1162 dfc3               clc
+  59 1164 d201               shl    r1, 1
+  60 1166                @@:
+  61 1166 af9f 1144          call   read_i2c_byte ; read byte from r1 to r0
+  62                         ; inc    r1  -- in call already increments r1
+  63                     
+  64 116a 67c0 00ff          and    r0, 0x00FF
+  65 116e 0002               mov    r2, r0
+  66                     
+  67 1170 af9f 1144          call   read_i2c_byte ; read byte from r1 to r0
+  68                         ; inc    r1  -- in call already increments r1
+  69                     
+  70 1174 67c0 00ff          and    r0, 0x00FF
+  71 1178 d3c0               shl    r0, 8
+  72                     
+  73 117a 8002               or     r2, r0
+  74                     
+  75 117c 00a1               mov    w[r9++], r2
+  76 117e da03               dec    r3
+  77 1180 c172               jnz    @b
+  78                     
+  79 1182 cf97               ret
+  80                     
+
+ 136                     include block.asm
 
    0                      ;; /*************************************************************************
    1                      ;; *                     This file is part of Stierlitz:                    *
@@ -1841,8 +1933,8 @@ QTASM rev 1.18x
   25                     ;*****************************************************************************
   26                     ;; Actual index of LBA block to read/write
   27                     ;*****************************************************************************
-  28 1126 0000           actual_lba_lw			dw 0x0000
-  29 1128 0000           actual_lba_uw			dw 0x0000
+  28 1184 0000           actual_lba_lw			dw 0x0000
+  29 1186 0000           actual_lba_uw			dw 0x0000
   30                     ;*****************************************************************************
   31                     
   32                     
@@ -1852,29 +1944,29 @@ QTASM rev 1.18x
   36                     ;; results: r2 is true or false.
   37                     ;;          r1:r0 is index into range (0...N)
   38                     ;*****************************************************************************
-  39 112a                test_lba_block_in_range:
-  40 112a 09c1 1128          mov    r1, w[actual_lba_uw]
-  41 112e 09c0 1126          mov    r0, w[actual_lba_lw]
-  42 1132 af9f 0bb2          call   subtract_16 ;; R1:R0 - R3:R2
-  43 1136 c20e               jc     out_of_range	; below range?
+  39 1188                test_lba_block_in_range:
+  40 1188 09c1 1186          mov    r1, w[actual_lba_uw]
+  41 118c 09c0 1184          mov    r0, w[actual_lba_lw]
+  42 1190 af9f 0bb2          call   subtract_16 ;; R1:R0 - R3:R2
+  43 1194 c20e               jc     out_of_range	; below range?
   44                         ;; r1:r0 is now index into range, save it
-  45 1138 0046               mov    r6, r1
-  46 113a 0007               mov    r7, r0
-  47 113c 09c1 1128          mov    r1, w[actual_lba_uw]
-  48 1140 09c0 1126          mov    r0, w[actual_lba_lw]
-  49 1144 0103               mov    r3, r4 ; uw of upper bound
-  50 1146 0142               mov    r2, r5 ; lw of upper bound
-  51 1148 af9f 0bb2          call   subtract_16 ;; R1:R0 - R3:R2
-  52 114c c303               jnc    out_of_range
+  45 1196 0046               mov    r6, r1
+  46 1198 0007               mov    r7, r0
+  47 119a 09c1 1186          mov    r1, w[actual_lba_uw]
+  48 119e 09c0 1184          mov    r0, w[actual_lba_lw]
+  49 11a2 0103               mov    r3, r4 ; uw of upper bound
+  50 11a4 0142               mov    r2, r5 ; lw of upper bound
+  51 11a6 af9f 0bb2          call   subtract_16 ;; R1:R0 - R3:R2
+  52 11aa c303               jnc    out_of_range
   53                         ;; is in range:
-  54 114e 07c2 0001          mov    r2, 0x0001 ; True
-  55 1152 cf02               jmp    blk_range_done
-  56 1154                out_of_range:
-  57 1154 07c2 0000          mov    r2, 0x0000 ; False
-  58 1158                blk_range_done:
-  59 1158 0181               mov    r1, r6
-  60 115a 01c0               mov    r0, r7
-  61 115c cf97               ret
+  54 11ac 07c2 0001          mov    r2, 0x0001 ; True
+  55 11b0 cf02               jmp    blk_range_done
+  56 11b2                out_of_range:
+  57 11b2 07c2 0000          mov    r2, 0x0000 ; False
+  58 11b6                blk_range_done:
+  59 11b6 0181               mov    r1, r6
+  60 11b8 01c0               mov    r0, r7
+  61 11ba cf97               ret
   62                     ;*****************************************************************************
   63                     
   64                     
@@ -1883,313 +1975,386 @@ QTASM rev 1.18x
   67                     ;*****************************************************************************
   68                     ;; watch out for carry (unhandled because QTASM is RETARDED ...)
   69                     ;; TODO: there's none right now. but check here again when we up the virtual file size.
-  70           0000490f  FILE_TOP_LW	equ	(FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM + FILE_SIZE_IN_BLKS_LW)
-  71           00000000  FILE_TOP_UW	equ	(FAT16_DATA_AREA_LBA_UW_EFFECTIVE_BOTTOM + FILE_SIZE_IN_BLKS_UW)
+  70           0000490f  FILE_TOP_LW	equ	(FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM + FILE_SIZE_IN_BLKS_LW )
+  71           00000000  FILE_TOP_UW	equ	(FAT16_DATA_AREA_LBA_UW_EFFECTIVE_BOTTOM + FILE_SIZE_IN_BLKS_UW )
   72                     ;*****************************************************************************
-  73 115e                test_lba_block_in_payload_range:
-  74 115e 07c3 0000          mov    r3, FAT16_DATA_AREA_LBA_UW_EFFECTIVE_BOTTOM
-  75 1162 07c2 029e          mov    r2, FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM
-  76 1166 07c4 0000          mov    r4, FILE_TOP_UW
-  77 116a 07c5 490f          mov    r5, FILE_TOP_LW
-  78 116e af9f 112a          call   test_lba_block_in_range
-  79 1172 77c2 0001          test   r2, 1
-  80 1176 c004               jz     @f
-  81 1178 0067 13a4          mov    w[physical_lba_uw], r1
-  82 117c 0027 13a2          mov    w[physical_lba_lw], r0
-  83 1180                @@:
-  84 1180 0080               mov    r0, r2
-  85 1182 cf97               ret
+  73 11bc                test_lba_block_in_payload_range:
+  74 11bc 07c3 0000          mov    r3, FAT16_DATA_AREA_LBA_UW_EFFECTIVE_BOTTOM
+  75 11c0 07c2 029e          mov    r2, FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM
+  76 11c4 07c4 0000          mov    r4, FILE_TOP_UW
+  77 11c8 07c5 490f          mov    r5, FILE_TOP_LW
+  78 11cc af9f 1188          call   test_lba_block_in_range
+  79 11d0 77c2 0001          test   r2, 1
+  80 11d4 c004               jz     @f
+  81 11d6 0067 1480          mov    w[physical_lba_uw], r1
+  82 11da 0027 147e          mov    w[physical_lba_lw], r0
+  83 11de                @@:
+  84 11de 0080               mov    r0, r2
+  85 11e0 cf97               ret
   86                     ;*****************************************************************************
   87                     
-  88                     
-  89                     ;*****************************************************************************
-  90                     ;; Load LBA block
+  88                     ;*****************************************************************************
+  89                     ; second file
+  90                     ; TODO: hack -- fix sum of LWs overflow
   91                     ;*****************************************************************************
-  92 1184                load_lba_block:
-  93 1184 af9f 115e          call   test_lba_block_in_payload_range
-  94 1188 77c0 0001          test   r0, 1
-  95 118c c003               jz     @f
-  96 118e af9f 13a6          call   load_physical_lba_block ; this was a payload block
-  97 1192 cf97               ret	; and so we're done here.
-  98 1194                @@: ; Or, well, not:
-  99                     
- 100                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
- 101                         ;; call   dbg_print_read_block_index
- 102                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
- 103                     
- 104                         ;; What is it then?
- 105                         ;; Primary FAT:
- 106 1194 07c3 0000          mov    r3, FAT16_FAT_TABLES_BLOCK_LBA_UW
- 107 1198 07c2 0040          mov    r2, FAT16_FAT_TABLES_BLOCK_LBA_LW
- 108 119c 07c4 0000          mov    r4, FAT16_FAT_TABLES_BLOCK_LBA_UW ; should work, since we are the 1st partition
- 109 11a0 07c5 013f          mov    r5, (FAT16_FAT_TABLES_BLOCK_LBA_LW + FAT16_PART0_SECTORS_PER_FAT)
- 110 11a4 af9f 112a          call   test_lba_block_in_range
- 111 11a8 77c2 0001          test   r2, 1
- 112 11ac c003               jz     @f
- 113 11ae af9f 125a          call   build_fat16_fat ;; Build FAT
- 114 11b2 cf97               ret
- 115 11b4                @@:
- 116                         ;; Secondary FAT:
- 117 11b4 07c3 0000          mov    r3, FAT16_FAT_TABLES_COPY_BLOCK_LBA_UW
- 118 11b8 07c2 013f          mov    r2, FAT16_FAT_TABLES_COPY_BLOCK_LBA_LW
- 119 11bc 07c4 0000          mov    r4, FAT16_FAT_TABLES_COPY_BLOCK_LBA_UW ; should work, since we are the 1st partition
- 120 11c0 07c5 023e          mov    r5, (FAT16_FAT_TABLES_COPY_BLOCK_LBA_LW + FAT16_PART0_SECTORS_PER_FAT)
- 121 11c4 af9f 112a          call   test_lba_block_in_range
- 122 11c8 77c2 0001          test   r2, 1
- 123 11cc c003               jz     @f
- 124 11ce af9f 125a          call   build_fat16_fat ;; Build FAT
- 125 11d2 cf97               ret
- 126 11d4                @@:
- 127                         ;; MBR:
- 128 11d4 57e7 0000 1126     cmp    w[actual_lba_lw], MBR_BLOCK_LBA_LW
- 129 11da c107               jne    @f
- 130 11dc 57e7 0000 1128     cmp    w[actual_lba_uw], MBR_BLOCK_LBA_UW
- 131 11e2 c103               jne    @f
- 132                         ;; Build MBR
- 133 11e4 af9f 123e          call   build_fat16_mbr
- 134 11e8 cf97               ret
- 135                         ;; Boot Block - start of partition:
- 136 11ea 57e7 003f 1126 @@: cmp    w[actual_lba_lw], FAT16_BOOT_BLOCK_LBA_LW
- 137 11f0 c107               jne    @f
- 138 11f2 57e7 0000 1128     cmp    w[actual_lba_uw], FAT16_BOOT_BLOCK_LBA_UW
- 139 11f8 c103               jne    @f
- 140 11fa af9f 1346          call   build_fat16_boot_block
- 141 11fe cf97               ret
- 142                         ;; Root Directory Entries:
- 143 1200 57e7 023e 1126 @@: cmp    w[actual_lba_lw], FAT16_ROOT_DIRECTORY_ENTRY_LBA_LW
- 144 1206 c107               jne    @f
- 145 1208 57e7 0000 1128     cmp    w[actual_lba_uw], FAT16_ROOT_DIRECTORY_ENTRY_LBA_UW
- 146 120e c103               jne    @f
- 147                         ;; Build Root Dir
- 148 1210 af9f 12f2          call   build_fat16_root_dir
- 149 1214 cf97               ret
- 150 1216                zero_block: ; default - null block:
- 151 1216 af9f 0954      @@: call   zap_send_buffer
- 152 121a cf97               ret
- 153                     ;*****************************************************************************
- 154                     
- 155                     
- 156                     ;*****************************************************************************
- 157                     ;; Save LBA block
- 158                     ;*****************************************************************************
- 159 121c                save_lba_block:
- 160 121c af9f 115e          call   test_lba_block_in_payload_range
- 161 1220 77c0 0001          test   r0, 1
- 162 1224 c003               jz     @f
- 163                         ;; this was a payload block:
- 164 1226 af9f 13e0          call   save_physical_lba_block
- 165 122a cf97               ret	; and so we're done here.
- 166 122c                @@: ;; don't do anything for non-payload blocks...
- 167 122c cf97               ret
- 168                     ;*****************************************************************************
- 169                     
- 170                     
- 171                     ;*****************************************************************************
- 172                     ;; FAT16 MBR
- 173                     ;*****************************************************************************
- 174           0000      align 2
- 175 122e                part0_mbr_record_data:
- 176 122e 00             	db	PART0_STATUS
- 177 122f 01             	db	PART0_START_HEAD
- 178 1230 01             	db	PART0_START_SECT_76CYLHIGH
- 179 1231 00             	db	PART0_START_CYL
- 180 1232 0e             	db	PART0_PARTITION_TYPE
- 181 1233 7f             	db	PART0_END_HEAD
- 182 1234 bf             	db	PART0_END_SECT_76CYLHIGH
- 183 1235 05             	db	PART0_END_CYL
- 184 1236 003f           	dw	PART0_START_LBA_LW
- 185 1238 0000           	dw	PART0_START_LBA_UW
- 186 123a bcc1           	dw	PART0_SECTORS_LW
- 187 123c 003f           	dw	PART0_SECTORS_UW
- 188           00000010  	PART0_MBR_RECORD_DATA_LEN equ ($-part0_mbr_record_data)
- 189                     ;*****************************************************************************
- 190           0000      align 2
- 191 123e                build_fat16_mbr:
- 192 123e af9f 0954          call   zap_send_buffer
- 193 1242 07c8 122e          mov    r8, part0_mbr_record_data
- 194 1246 07c9 16a8          mov    r9, PART0_MBR_RECORD_OFFSET
- 195 124a 07c1 0008          mov    r1, (PART0_MBR_RECORD_DATA_LEN >> 1) ; word count
- 196 124e af9f 0baa          call   mem_move
- 197 1252 07e7 aa55 16e8     mov    w[BOOT_SIGNATURE_OFFSET], BOOT_SIGNATURE
- 198 1258 cf97               ret
+  92                     ; FILE2_BOTTOM_LW	equ	(FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM + (FAKE_FILE_CLUSTERS * (FAT16_CLUSTER_SIZE / BLOCKSIZE)))
+  93           0000491e  FILE2_BOTTOM_LW	equ	(FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM + (FAKE_FILE_CLUSTERS * 0x040))
+  94           00000000  FILE2_BOTTOM_UW	equ	0
+  95           0000493e  FILE2_TOP_LW	equ	(FILE2_BOTTOM_LW + FILE2_SIZE_IN_BLKS_LW)
+  96           00000000  FILE2_TOP_UW	equ	0
+  97                     ;*****************************************************************************
+  98 11e2                test_file2_lba_block_in_payload_range:
+  99 11e2 07c3 0000          mov    r3, FILE2_BOTTOM_UW
+ 100 11e6 07c2 491e          mov    r2, FILE2_BOTTOM_LW
+ 101 11ea 07c4 0000          mov    r4, FILE2_TOP_UW
+ 102 11ee 07c5 493e          mov    r5, FILE2_TOP_LW
+ 103 11f2 af9f 1188          call   test_lba_block_in_range
+ 104 11f6 77c2 0001          test   r2, 1
+ 105 11fa c004               jz     @f
+ 106 11fc 0067 1480          mov    w[physical_lba_uw], r1
+ 107 1200 0027 147e          mov    w[physical_lba_lw], r0
+ 108 1204                @@:
+ 109 1204 0080               mov    r0, r2
+ 110 1206 cf97               ret
+ 111                     ;*****************************************************************************
+ 112                     
+ 113                     
+ 114                     ;*****************************************************************************
+ 115                     ;; Load LBA block
+ 116                     ;*****************************************************************************
+ 117 1208                load_lba_block:
+ 118 1208 af9f 11bc          call   test_lba_block_in_payload_range
+ 119 120c 77c0 0001          test   r0, 1
+ 120 1210 c003               jz     @f
+ 121 1212 af9f 1482          call   load_physical_lba_block ; this was a payload block
+ 122 1216 cf97               ret	; and so we're done here.
+ 123 1218                @@: ; Or, well, not:
+ 124                     
+ 125 1218 af9f 11e2          call   test_file2_lba_block_in_payload_range
+ 126 121c 77c0 0001          test   r0, 1
+ 127 1220 c003               jz     @f
+ 128 1222 af9f 1150          call   load_physical_lba_block_from_i2c ; this was a payload block w[physical_lba_uw] and w[physical_lba_lw]
+ 129                         ; call  zap_with_test_data
+ 130 1226 cf97               ret	; and so we're done here.
+ 131 1228                @@: ; Or, well, not:
+ 132                     
+ 133                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ 134                         ;; call   dbg_print_read_block_index
+ 135                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ 136                     
+ 137                         ;; What is it then?
+ 138                         ;; Primary FAT:
+ 139 1228 07c3 0000          mov    r3, FAT16_FAT_TABLES_BLOCK_LBA_UW
+ 140 122c 07c2 0040          mov    r2, FAT16_FAT_TABLES_BLOCK_LBA_LW
+ 141 1230 07c4 0000          mov    r4, FAT16_FAT_TABLES_BLOCK_LBA_UW ; should work, since we are the 1st partition
+ 142 1234 07c5 013f          mov    r5, (FAT16_FAT_TABLES_BLOCK_LBA_LW + FAT16_PART0_SECTORS_PER_FAT)
+ 143 1238 af9f 1188          call   test_lba_block_in_range
+ 144 123c 77c2 0001          test   r2, 1
+ 145 1240 c003               jz     @f
+ 146 1242 af9f 1308          call   build_fat16_fat ;; Build FAT
+ 147 1246 cf97               ret
+ 148 1248                @@:
+ 149                         ;; Secondary FAT:
+ 150 1248 07c3 0000          mov    r3, FAT16_FAT_TABLES_COPY_BLOCK_LBA_UW
+ 151 124c 07c2 013f          mov    r2, FAT16_FAT_TABLES_COPY_BLOCK_LBA_LW
+ 152 1250 07c4 0000          mov    r4, FAT16_FAT_TABLES_COPY_BLOCK_LBA_UW ; should work, since we are the 1st partition
+ 153 1254 07c5 023e          mov    r5, (FAT16_FAT_TABLES_COPY_BLOCK_LBA_LW + FAT16_PART0_SECTORS_PER_FAT)
+ 154 1258 af9f 1188          call   test_lba_block_in_range
+ 155 125c 77c2 0001          test   r2, 1
+ 156 1260 c003               jz     @f
+ 157 1262 af9f 1308          call   build_fat16_fat ;; Build FAT
+ 158 1266 cf97               ret
+ 159 1268                @@:
+ 160                         ;; MBR:
+ 161 1268 57e7 0000 1184     cmp    w[actual_lba_lw], MBR_BLOCK_LBA_LW
+ 162 126e c107               jne    @f
+ 163 1270 57e7 0000 1186     cmp    w[actual_lba_uw], MBR_BLOCK_LBA_UW
+ 164 1276 c103               jne    @f
+ 165                         ;; Build MBR
+ 166 1278 af9f 12ec          call   build_fat16_mbr
+ 167 127c cf97               ret
+ 168                         ;; Boot Block - start of partition:
+ 169 127e 57e7 003f 1184 @@: cmp    w[actual_lba_lw], FAT16_BOOT_BLOCK_LBA_LW
+ 170 1284 c107               jne    @f
+ 171 1286 57e7 0000 1186     cmp    w[actual_lba_uw], FAT16_BOOT_BLOCK_LBA_UW
+ 172 128c c103               jne    @f
+ 173 128e af9f 1422          call   build_fat16_boot_block
+ 174 1292 cf97               ret
+ 175                         ;; Root Directory Entries:
+ 176 1294 57e7 023e 1184 @@: cmp    w[actual_lba_lw], FAT16_ROOT_DIRECTORY_ENTRY_LBA_LW
+ 177 129a c107               jne    @f
+ 178 129c 57e7 0000 1186     cmp    w[actual_lba_uw], FAT16_ROOT_DIRECTORY_ENTRY_LBA_UW
+ 179 12a2 c103               jne    @f
+ 180                         ;; Build Root Dir
+ 181 12a4 af9f 13ce          call   build_fat16_root_dir
+ 182 12a8 cf97               ret
+ 183 12aa                zero_block: ; default - null block:
+ 184 12aa                @@: 
+ 185 12aa af9f 0954          call   zap_send_buffer
+ 186 12ae cf97               ret
+ 187                     
+ 188 12b0                zap_with_test_data:
+ 189 12b0 07c1 0080          mov    r1, 0x0080
+ 190 12b4 07c9 15c6          mov    r9, send_buffer
+ 191 12b8 09c0 1184          mov    r0, w[actual_lba_lw]
+ 192 12bc 09c2 1186          mov    r2, w[actual_lba_uw]
+ 193 12c0                @@:
+ 194 12c0 0021               mov    w[r9++], r0
+ 195 12c2 00a1               mov    w[r9++], r2
+ 196 12c4 da01               dec    r1
+ 197 12c6 c17c               jnz    @b
+ 198 12c8 cf97               ret
  199                     ;*****************************************************************************
  200                     
  201                     
  202                     ;*****************************************************************************
- 203                     ;; FAT16 FAT
+ 203                     ;; Save LBA block
  204                     ;*****************************************************************************
- 205                     ;; ! QTASM IS RETARDED ! QTASM IS RETARDED ! QTASM IS RETARDED ! QTASM IS RETARDED
- 206                     ;*****************************************************************************
- 207                     ;; FAT16_PART0_SECTORS_PER_CLUSTER == 0x040
- 208                     ;; FAKE_FILE_BYTES		equ	0x100000 ; 1 MB
- 209                     ;; FAT16_CLUSTER_SIZE		equ	(0x040 * BLOCKSIZE)
- 210                     ;; FAKE_FILE_CLUSTERS		equ	(FAKE_FILE_BYTES / FAT16_CLUSTER_SIZE)
- 211                     ;*****************************************************************************
- 212                     ;; ! QTASM IS RETARDED ! QTASM IS RETARDED ! QTASM IS RETARDED ! QTASM IS RETARDED
- 213                     ;*****************************************************************************
- 214                     
- 215           0000      align 2
- 216 125a                build_fat16_fat:
- 217                         ;; r0 contains index of FAT page to load (0...FF)
- 218 125a 07c9 14ea          mov    r9, send_buffer
- 219 125e 6000               and    r0, r0
- 220 1260 c109               jnz    @f
- 221                         ;; If we were asked for the first page of the FAT:
- 222 1262 07e1 fff8          mov    w[r9++], 0xfff8 ; Partition Type = HDD (0xf8);
- 223 1266 07e1 ffff          mov    w[r9++], 0xffff ; State = Good (0xff) - TODO: Might need to be writable for mount! <---- Should we make this dirty?
- 224 126a 07e1 0000          mov    w[r9++], 0x0000 ; Cluster 0 is reserved, and its address is 2.
- 225 126e 07c0 0004          mov    r0, FIRST_CLUSTER_INDEX ; Number of first cluster of file
- 226 1272 cf0d               jmp    build_fat
- 227 1274                @@: ;; Not the first page:
- 228 1274 0001               mov    r1, r0
- 229 1276 9000               xor    r0, r0
- 230 1278                @@:
- 231 1278 17c0 0100          add    r0, 0x0100
- 232 127c da01               subi   r1, 1
- 233 127e c17c               jnz    @b
- 234                         ;; if we're past the last page?
- 235 1280 57c0 011a          cmp    r0, FAKE_FILE_CLUSTERS
- 236 1284 c903               jbe    @f
- 237 1286 af9f 0954          call   zap_send_buffer
- 238 128a cf12               jmp    fat_build_done
- 239 128c                @@: ;; now, r0 is either 3 (page 0) or 0xFF * page-index.
- 240 128c d800               addi   r0, 1
- 241 128e                build_fat:
- 242 128e                @@:
- 243                         ;; block full?
- 244 128e 57c9 16ea          cmp    r9, (send_buffer + BLOCKSIZE) ; stop if the block is full
- 245 1292 c00e               je     fat_build_done
- 246                         ;; There is room:
- 247 1294 57c0 011d          cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS - 1)
- 248 1298 c003               je     penult_cluster ; this was the penultimate cluster
- 249 129a 0021               mov    w[r9++], r0
- 250 129c d800               addi   r0, 1
- 251 129e cf77               jmp    @b ; keep adding cluster records.
- 252 12a0                penult_cluster:
- 253 12a0 07e1 ffff          mov    w[r9++], 0xFFFF ; Now write the last cluster of file.
- 254 12a4 9000               xor    r0, r0
- 255 12a6                @@:
- 256 12a6 57c9 16ea          cmp    r9, (send_buffer + BLOCKSIZE) ; stop if the block is full
- 257 12aa c002               je     fat_build_done
- 258 12ac 0021               mov    w[r9++], r0
- 259 12ae cf7b               jmp    @b
- 260 12b0                fat_build_done:
- 261 12b0 cf97               ret
- 262                     ;*****************************************************************************
- 263                     
- 264                     
- 265                     ;*****************************************************************************
- 266                     ;; FAT16 Root Directory
- 267                     ;*****************************************************************************
- 268                     ;; Note: Linux actually tries to write access dates here, upon sync.
- 269                     ;; But we don't care. There is no good reason to waste EEPROM write cycles
- 270                     ;; only to store such garbage. The FAT16 bookkeeping will be kept constant.
- 271                     ;*****************************************************************************
- 272           0000      align 2
- 273 12b2                fat16_root_dir_data:
- 274                             ;; *****************************************************************
- 275                             ;; Volume Label
- 276                             ;; *****************************************************************
- 277 12b2 53 54 49 52 4c 	db      'STIRLITZ   ' ; Volume Label (8 chars body + 3 chars ext)
+ 205 12ca                save_lba_block:
+ 206 12ca af9f 11bc          call   test_lba_block_in_payload_range
+ 207 12ce 77c0 0001          test   r0, 1
+ 208 12d2 c003               jz     @f
+ 209                         ;; this was a payload block:
+ 210 12d4 af9f 14bc          call   save_physical_lba_block
+ 211 12d8 cf97               ret	; and so we're done here.
+ 212 12da                @@: ;; don't do anything for non-payload blocks...
+ 213 12da cf97               ret
+ 214                     ;*****************************************************************************
+ 215                     
+ 216                     
+ 217                     ;*****************************************************************************
+ 218                     ;; FAT16 MBR
+ 219                     ;*****************************************************************************
+ 220           0000      align 2
+ 221 12dc                part0_mbr_record_data:
+ 222 12dc 00             	db	PART0_STATUS
+ 223 12dd 01             	db	PART0_START_HEAD
+ 224 12de 01             	db	PART0_START_SECT_76CYLHIGH
+ 225 12df 00             	db	PART0_START_CYL
+ 226 12e0 0e             	db	PART0_PARTITION_TYPE
+ 227 12e1 7f             	db	PART0_END_HEAD
+ 228 12e2 bf             	db	PART0_END_SECT_76CYLHIGH
+ 229 12e3 05             	db	PART0_END_CYL
+ 230 12e4 003f           	dw	PART0_START_LBA_LW
+ 231 12e6 0000           	dw	PART0_START_LBA_UW
+ 232 12e8 bcc1           	dw	PART0_SECTORS_LW
+ 233 12ea 003f           	dw	PART0_SECTORS_UW
+ 234           00000010  	PART0_MBR_RECORD_DATA_LEN equ ($-part0_mbr_record_data)
+ 235                     ;*****************************************************************************
+ 236           0000      align 2
+ 237 12ec                build_fat16_mbr:
+ 238 12ec af9f 0954          call   zap_send_buffer
+ 239 12f0 07c8 12dc          mov    r8, part0_mbr_record_data
+ 240 12f4 07c9 1784          mov    r9, PART0_MBR_RECORD_OFFSET
+ 241 12f8 07c1 0008          mov    r1, (PART0_MBR_RECORD_DATA_LEN >> 1) ; word count
+ 242 12fc af9f 0baa          call   mem_move
+ 243 1300 07e7 aa55 17c4     mov    w[BOOT_SIGNATURE_OFFSET], BOOT_SIGNATURE
+ 244 1306 cf97               ret
+ 245                     ;*****************************************************************************
+ 246                     
+ 247                     
+ 248                     ;*****************************************************************************
+ 249                     ;; FAT16 FAT
+ 250                     ;*****************************************************************************
+ 251                     ;; ! QTASM IS RETARDED ! QTASM IS RETARDED ! QTASM IS RETARDED ! QTASM IS RETARDED
+ 252                     ;*****************************************************************************
+ 253                     ;; FAT16_PART0_SECTORS_PER_CLUSTER == 0x040
+ 254                     ;; FAKE_FILE_BYTES		equ	0x100000 ; 1 MB
+ 255                     ;; FAT16_CLUSTER_SIZE		equ	(0x040 * BLOCKSIZE)
+ 256                     ;; FAKE_FILE_CLUSTERS		equ	(FAKE_FILE_BYTES / FAT16_CLUSTER_SIZE)
+ 257                     ;*****************************************************************************
+ 258                     ;; ! QTASM IS RETARDED ! QTASM IS RETARDED ! QTASM IS RETARDED ! QTASM IS RETARDED
+ 259                     ;*****************************************************************************
+ 260                     
+ 261           0000      align 2
+ 262 1308                build_fat16_fat:
+ 263                         ;; r0 contains index of FAT page to load (0...FF)
+ 264 1308 07c9 15c6          mov    r9, send_buffer
+ 265 130c 6000               and    r0, r0
+ 266 130e c109               jnz    @f
+ 267                         ;; If we were asked for the first page of the FAT:
+ 268 1310 07e1 fff8          mov    w[r9++], 0xfff8 ; Partition Type = HDD (0xf8);
+ 269 1314 07e1 ffff          mov    w[r9++], 0xffff ; State = Good (0xff) - TODO: Might need to be writable for mount! <---- Should we make this dirty?
+ 270 1318 07e1 0000          mov    w[r9++], 0x0000 ; Cluster 0 is reserved, and its address is 2.
+ 271 131c 07c0 0004          mov    r0, FIRST_CLUSTER_INDEX ; Number of first cluster of file + 1
+ 272 1320 cf0d               jmp    build_fat
+ 273 1322                @@: ;; Not the first page:
+ 274 1322 0001               mov    r1, r0
+ 275 1324 9000               xor    r0, r0
+ 276 1326                @@:
+ 277 1326 17c0 0100          add    r0, 0x0100 ; 512 is block, 2 bytes per entry, 256 entries
+ 278 132a da01               subi   r1, 1      ; find out where we are r0=256*FAT page number (0..FF) -- are we past the allocated clusters?
+ 279 132c c17c               jnz    @b
+ 280                         ;; if we're past the last page?
+ 281 132e 57c0 011b          cmp    r0, (FAKE_FILE_CLUSTERS+FAKE_FILE2_CLUSTERS)
+ 282 1332 c903               jbe    @f
+ 283 1334 af9f 0954          call   zap_send_buffer
+ 284 1338 cf19               jmp    fat_build_done
+ 285 133a                @@: ;; now, r0 is either 3+1 (page 0) or 0xFF * page-index.
+ 286 133a d800               addi   r0, 1
+ 287                         ;; r0 is where we are pointing next
+ 288 133c                build_fat:
+ 289 133c                @@:
+ 290                         ;; block full?
+ 291 133c 57c9 17c6          cmp    r9, (send_buffer + BLOCKSIZE) ; stop if the block is full
+ 292 1340 c015               je     fat_build_done
+ 293                         ;; There is room:
+ 294                         ;; cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS + FAKE_FILE2_CLUSTERS - 1)
+ 295 1342 57c0 011d          cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS - 1)
+ 296 1346 c006               je     penult_cluster ; this was the penultimate cluster for file1
+ 297 1348 57c0 011e          cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS + FAKE_FILE2_CLUSTERS - 1)
+ 298 134c c003               je     penult_cluster ; this was the penultimate cluster for file2
+ 299 134e 0021               mov    w[r9++], r0
+ 300 1350 d800               addi   r0, 1
+ 301 1352 cf74               jmp    @b ; keep adding cluster records.
+ 302                     
+ 303 1354                penult_cluster:
+ 304 1354 07e1 ffff          mov    w[r9++], 0xFFFF ; Now write the last cluster of file.
+ 305 1358 d800               addi   r0, 1
+ 306 135a 57c0 011e          cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS + FAKE_FILE2_CLUSTERS - 1)
+ 307 135e c96e               jbe     build_fat ; still need to build file2
+ 308                     
+ 309                         ;; this was file2 -- clean the rest
+ 310 1360 9000               xor    r0, r0 ; r0=0
+ 311 1362                @@:
+ 312 1362 57c9 17c6          cmp    r9, (send_buffer + BLOCKSIZE) ; stop if the block is full
+ 313 1366 c002               je     fat_build_done
+ 314 1368 0021               mov    w[r9++], r0 ; fill the rest with zeros
+ 315 136a cf7b               jmp    @b
+ 316 136c                fat_build_done:
+ 317 136c cf97               ret
+ 318                     ;*****************************************************************************
+ 319                     
+ 320                     
+ 321                     ;*****************************************************************************
+ 322                     ;; FAT16 Root Directory
+ 323                     ;*****************************************************************************
+ 324                     ;; Note: Linux actually tries to write access dates here, upon sync.
+ 325                     ;; But we don't care. There is no good reason to waste EEPROM write cycles
+ 326                     ;; only to store such garbage. The FAT16 bookkeeping will be kept constant.
+ 327                     ;*****************************************************************************
+ 328           0000      align 2
+ 329 136e                fat16_root_dir_data:
+ 330                             ;; *****************************************************************
+ 331                             ;; Volume Label
+ 332                             ;; *****************************************************************
+ 333 136e 53 54 49 52 4c 	db      'STIRLITZ   ' ; Volume Label (8 chars body + 3 chars ext)
           49 54 5a 20 20 
           20 
- 278 12bd 08             	db	0x08   ; Attrib = 0x08 (Volume Label)
- 279 12be 0000           	dw	0x0000 ; b. 12 - n/a; b. 13 - creation time (10th of secs)
- 280 12c0 0000           	dw	0x0000 ; 14, 15: creation time (hours, minutes, seconds)
- 281 12c2 0000           	dw	0x0000 ; creation date
- 282 12c4 0000           	dw	0x0000 ; access date
- 283 12c6 0000           	dw	0x0000 ; high word of 1st cluster address
- 284 12c8 0000           	dw	0x0000 ; modified time (hours, minutes, seconds)
- 285 12ca 0000           	dw	0x0000 ; modified date
- 286 12cc 0000           	dw	0x0000 ; low word of 1st cluster address
- 287 12ce 0000           	dw	0x0000 ; lower word of size (0 for directories)
- 288 12d0 0000           	dw	0x0000 ; upper word of size (0 for directories)
- 289                             ;; *****************************************************************
- 290                     	;; If we wanted long file name, it would live here...
- 291                     	;; *****************************************************************
- 292                             ;; The File itself
- 293                             ;; *****************************************************************
- 294 12d2 4c 4f 50 45 52     	db      'LOPERIMGBIN' ; Volume Label (8 chars body + 3 chars ext)
-          49 4d 47 42 49 
+ 334 1379 08             	db	0x08   ; Attrib = 0x08 (Volume Label)
+ 335 137a 0000           	dw	0x0000 ; b. 12 - n/a; b. 13 - creation time (10th of secs)
+ 336 137c 0000           	dw	0x0000 ; 14, 15: creation time (hours, minutes, seconds)
+ 337 137e 0000           	dw	0x0000 ; creation date
+ 338 1380 0000           	dw	0x0000 ; access date
+ 339 1382 0000           	dw	0x0000 ; high word of 1st cluster address
+ 340 1384 0000           	dw	0x0000 ; modified time (hours, minutes, seconds)
+ 341 1386 0000           	dw	0x0000 ; modified date
+ 342 1388 0000           	dw	0x0000 ; low word of 1st cluster address
+ 343 138a 0000           	dw	0x0000 ; lower word of size (0 for directories)
+ 344 138c 0000           	dw	0x0000 ; upper word of size (0 for directories)
+ 345                             ;; *****************************************************************
+ 346                     	;; If we wanted long file name, it would live here...
+ 347                     	;; *****************************************************************
+ 348                             ;; The File itself
+ 349                             ;; *****************************************************************
+ 350 138e 42 50 49 20 20     	db      'BPI     BIN' ; Volume Label (8 chars body + 3 chars ext)
+          20 20 20 42 49 
           4e 
- 295 12dd 20             	db	0x20   ; Attrib = 0x20 ("Archive")
- 296 12de 0000           	dw	0x0000 ; b. 12 - n/a; b. 13 - creation time (10th of secs)
- 297 12e0 0000           	dw	0x0000 ; 14, 15: creation time (hours, minutes, seconds)
- 298 12e2 0000           	dw	0x0000 ; creation date
- 299 12e4 0000           	dw	0x0000 ; access date
- 300 12e6 0000           	dw	0x0000 ; high word of 1st cluster address
- 301 12e8 0000           	dw	0x0000 ; modified time (hours, minutes, seconds)
- 302 12ea 0000           	dw	0x0000 ; modified date
- 303 12ec 0003           	dw	0x0003 ; low word of 1st cluster address
- 304 12ee e03c           	dw	FILE_SIZE_LW ; lower word of size (0 for directories)
- 305 12f0 008c           	dw	FILE_SIZE_UW ; upper word of size (0 for directories)	
- 306                             ;; *****************************************************************
- 307           00000040  	FAT16_ROOT_DIR_DATA_LEN equ ($-fat16_root_dir_data)
- 308                     ;*****************************************************************************
- 309           0000      align 2
- 310 12f2                build_fat16_root_dir:
- 311 12f2 af9f 0954          call   zap_send_buffer
- 312 12f6 07c8 12b2          mov    r8, fat16_root_dir_data
- 313 12fa 07c9 14ea          mov    r9, send_buffer
- 314 12fe 07c1 0020          mov    r1, (FAT16_ROOT_DIR_DATA_LEN >> 1) ; word count
- 315 1302 af9f 0baa          call   mem_move
- 316 1306 cf97               ret
- 317                     ;*****************************************************************************
- 318                     
- 319                     
- 320                     ;*****************************************************************************
- 321                     ;; FAT16 Boot Block
- 322                     ;*****************************************************************************
- 323           0000      align 2
- 324 1308                boot_block_data:
- 325 1308 eb                 	db	0xeb ; jmp
- 326 1309 3c             	db	0x3c ; jmp
- 327 130a 90             	db	0x90 ; nop
- 328 130b 4d 53 57 49 4e 	db      'MSWIN4.0' ; OEM name (8 chars)
+ 351 1399 20             	db	0x20   ; Attrib = 0x20 ("Archive")
+ 352 139a 0000           	dw	0x0000 ; b. 12 - n/a; b. 13 - creation time (10th of secs)
+ 353 139c 0000           	dw	0x0000 ; 14, 15: creation time (hours, minutes, seconds)
+ 354 139e 0000           	dw	0x0000 ; creation date
+ 355 13a0 0000           	dw	0x0000 ; access date
+ 356 13a2 0000           	dw	0x0000 ; high word of 1st cluster address
+ 357 13a4 0000           	dw	0x0000 ; modified time (hours, minutes, seconds)
+ 358 13a6 0000           	dw	0x0000 ; modified date
+ 359 13a8 0003           	dw	0x0003 ; low word of 1st cluster address
+ 360 13aa e03c           	dw	FILE_SIZE_LW ; lower word of size (0 for directories)
+ 361 13ac 008c           	dw	FILE_SIZE_UW ; upper word of size (0 for directories)	
+ 362                     	;; *****************************************************************
+ 363                             ;; The File itself
+ 364                             ;; *****************************************************************
+ 365 13ae 49 32 43 20 20     	db      'I2C     BIN' ; Volume Label (8 chars body + 3 chars ext)
+          20 20 20 42 49 
+          4e 
+ 366 13b9 20             	db	0x20   ; Attrib = 0x20 ("Archive")
+ 367 13ba 0000           	dw	0x0000 ; b. 12 - n/a; b. 13 - creation time (10th of secs)
+ 368 13bc 0000           	dw	0x0000 ; 14, 15: creation time (hours, minutes, seconds)
+ 369 13be 0000           	dw	0x0000 ; creation date
+ 370 13c0 0000           	dw	0x0000 ; access date
+ 371 13c2 0000           	dw	0x0000 ; high word of 1st cluster address
+ 372 13c4 0000           	dw	0x0000 ; modified time (hours, minutes, seconds)
+ 373 13c6 0000           	dw	0x0000 ; modified date
+ 374 13c8 011d           	dw	FILE2_CLUSTER_START_LW ; low word of 1st cluster address
+ 375 13ca 4000           	dw	FILE2_SIZE_LW ; lower word of size (0 for directories)
+ 376 13cc 0000           	dw	FILE2_SIZE_UW ; upper word of size (0 for directories)	
+ 377                             ;; *****************************************************************
+ 378           00000060  	FAT16_ROOT_DIR_DATA_LEN equ ($-fat16_root_dir_data)
+ 379                     ;*****************************************************************************
+ 380           0000      align 2
+ 381 13ce                build_fat16_root_dir:
+ 382 13ce af9f 0954          call   zap_send_buffer
+ 383 13d2 07c8 136e          mov    r8, fat16_root_dir_data
+ 384 13d6 07c9 15c6          mov    r9, send_buffer
+ 385 13da 07c1 0030          mov    r1, (FAT16_ROOT_DIR_DATA_LEN >> 1) ; word count
+ 386 13de af9f 0baa          call   mem_move
+ 387 13e2 cf97               ret
+ 388                     ;*****************************************************************************
+ 389                     
+ 390                     
+ 391                     ;*****************************************************************************
+ 392                     ;; FAT16 Boot Block
+ 393                     ;*****************************************************************************
+ 394           0000      align 2
+ 395 13e4                boot_block_data:
+ 396 13e4 eb                 	db	0xeb ; jmp
+ 397 13e5 3c             	db	0x3c ; jmp
+ 398 13e6 90             	db	0x90 ; nop
+ 399 13e7 4d 53 57 49 4e 	db      'MSWIN4.0' ; OEM name (8 chars)
           34 2e 30 
- 329 1313 0200           	dw      FAT16_PART0_BYTES_PER_SECTOR
- 330 1315 40             	db      FAT16_PART0_SECTORS_PER_CLUSTER
- 331 1316 0001           	dw      FAT16_PART0_RESERVED_SECTORS
- 332 1318 02             	db      FAT16_PART0_COPIES_OF_FAT
- 333 1319 0200           	dw      FAT16_PART0_MAX_ROOT_DIR_ENTRIES
- 334 131b 0000           	dw      FAT16_PART0_MAX_SECTS_IF_UNDR_32M
- 335 131d f8             	db      FAT16_PART0_MEDIA_DESCRIPTOR
- 336 131e 00ff           	dw      FAT16_PART0_SECTORS_PER_FAT
- 337 1320 003f           	dw      FAT16_PART0_SECTORS_PER_TRACK
- 338 1322 0080           	dw      FAT16_PART0_HEADS
- 339 1324 003f           	dw      PART0_START_LBA_LW ; # of hidden sectors (LW) from MBR
- 340 1326 0000           	dw      PART0_START_LBA_UW ; # of hidden sectors (UW) from MBR
- 341 1328 bcc1           	dw      PART0_SECTORS_LW ; # of sectors (LW) from MBR
- 342 132a 003f           	dw      PART0_SECTORS_UW ; # of sectors (UW) from MBR
- 343 132c 0080           	dw      FAT16_PART0_LOGICAL_DRIVE_NUMBER
- 344 132e 29             	db      FAT16_PART0_EXTENDED_SIGNATURE
- 345 132f 5f7b           	dw      FAT16_PART0_PARTITION_SERIAL_NUM_LW
- 346 1331 4f30           	dw      FAT16_PART0_PARTITION_SERIAL_NUM_UW
- 347 1333 53 54 49 45 52 	db	'STIERLITZ  ' ; Volume name of partition (11 chars)
+ 400 13ef 0200           	dw      FAT16_PART0_BYTES_PER_SECTOR
+ 401 13f1 40             	db      FAT16_PART0_SECTORS_PER_CLUSTER
+ 402 13f2 0001           	dw      FAT16_PART0_RESERVED_SECTORS
+ 403 13f4 02             	db      FAT16_PART0_COPIES_OF_FAT
+ 404 13f5 0200           	dw      FAT16_PART0_MAX_ROOT_DIR_ENTRIES
+ 405 13f7 0000           	dw      FAT16_PART0_MAX_SECTS_IF_UNDR_32M
+ 406 13f9 f8             	db      FAT16_PART0_MEDIA_DESCRIPTOR
+ 407 13fa 00ff           	dw      FAT16_PART0_SECTORS_PER_FAT
+ 408 13fc 003f           	dw      FAT16_PART0_SECTORS_PER_TRACK
+ 409 13fe 0080           	dw      FAT16_PART0_HEADS
+ 410 1400 003f           	dw      PART0_START_LBA_LW ; # of hidden sectors (LW) from MBR
+ 411 1402 0000           	dw      PART0_START_LBA_UW ; # of hidden sectors (UW) from MBR
+ 412 1404 bcc1           	dw      PART0_SECTORS_LW ; # of sectors (LW) from MBR
+ 413 1406 003f           	dw      PART0_SECTORS_UW ; # of sectors (UW) from MBR
+ 414 1408 0080           	dw      FAT16_PART0_LOGICAL_DRIVE_NUMBER
+ 415 140a 29             	db      FAT16_PART0_EXTENDED_SIGNATURE
+ 416 140b 5f7b           	dw      FAT16_PART0_PARTITION_SERIAL_NUM_LW
+ 417 140d 4f30           	dw      FAT16_PART0_PARTITION_SERIAL_NUM_UW
+ 418 140f 53 54 49 45 52 	db	'STIERLITZ  ' ; Volume name of partition (11 chars)
           4c 49 54 5a 20 
           20 
- 348 133e 46 41 54 31 36 	db      'FAT16   ' ; FAT Name (must equal "FAT16   ")
+ 419 141a 46 41 54 31 36 	db      'FAT16   ' ; FAT Name (must equal "FAT16   ")
           20 20 20 
- 349           0000003e  	BOOT_BLOCK_DATA_LEN equ ($-boot_block_data)
- 350                     ;*****************************************************************************
- 351           0000      align 2
- 352 1346                build_fat16_boot_block:
- 353 1346 07c8 1308          mov    r8, boot_block_data
- 354 134a 07c9 14ea          mov    r9, send_buffer
- 355 134e 07c1 001f          mov    r1, (BOOT_BLOCK_DATA_LEN >> 1) ; word count
- 356 1352 af9f 0baa          call   mem_move
- 357                         ;; fill remainder:
- 358 1356 07c9 1528          mov    r9, (send_buffer + BOOT_BLOCK_DATA_LEN) ; redundant?
- 359 135a 07c1 00e0          mov    r1, (((BLOCKSIZE - BOOT_BLOCK_DATA_LEN) >> 1) - 1)
- 360 135e                @@:
- 361 135e 07e1 f6f6          mov    w[r9++], FAT16_BOOT_BLOCK_FILLER
- 362 1362 da01               dec    r1
- 363 1364 c17c               jnz    @b
- 364 1366 07e7 aa55 16e8     mov    w[BOOT_SIGNATURE_OFFSET], BOOT_SIGNATURE
- 365 136c cf97               ret
- 366                     ;*****************************************************************************
+ 420           0000003e  	BOOT_BLOCK_DATA_LEN equ ($-boot_block_data)
+ 421                     ;*****************************************************************************
+ 422           0000      align 2
+ 423 1422                build_fat16_boot_block:
+ 424 1422 07c8 13e4          mov    r8, boot_block_data
+ 425 1426 07c9 15c6          mov    r9, send_buffer
+ 426 142a 07c1 001f          mov    r1, (BOOT_BLOCK_DATA_LEN >> 1) ; word count
+ 427 142e af9f 0baa          call   mem_move
+ 428                         ;; fill remainder:
+ 429 1432 07c9 1604          mov    r9, (send_buffer + BOOT_BLOCK_DATA_LEN) ; redundant?
+ 430 1436 07c1 00e0          mov    r1, (((BLOCKSIZE - BOOT_BLOCK_DATA_LEN) >> 1) - 1)
+ 431 143a                @@:
+ 432 143a 07e1 f6f6          mov    w[r9++], FAT16_BOOT_BLOCK_FILLER
+ 433 143e da01               dec    r1
+ 434 1440 c17c               jnz    @b
+ 435 1442 07e7 aa55 17c4     mov    w[BOOT_SIGNATURE_OFFSET], BOOT_SIGNATURE
+ 436 1448 cf97               ret
+ 437                     ;*****************************************************************************
 
- 136                     include hpi.asm
+ 137                     include hpi.asm
 
    0                      ;; /*************************************************************************
    1                      ;; *                     This file is part of Stierlitz:                    *
@@ -2221,12 +2386,12 @@ QTASM rev 1.18x
   27                     ;; Spin until host reads HPI
   28                     ;*****************************************************************************
   29                     ;; TODO: timeouts
-  30 136e                wait_for_hpi_read:
-  31 136e                @@:
-  32 136e 57ef 0001 079a     cmp    b[hpi_was_read], 0x01
-  33 1374 c17c               jne    @b
-  34 1376 07ef 0000 079a     mov    b[hpi_was_read], 0x00
-  35 137c cf97               ret
+  30 144a                wait_for_hpi_read:
+  31 144a                @@:
+  32 144a 57ef 0001 079a     cmp    b[hpi_was_read], 0x01
+  33 1450 c17c               jne    @b
+  34 1452 07ef 0000 079a     mov    b[hpi_was_read], 0x00
+  35 1458 cf97               ret
   36                     ;*****************************************************************************
   37                     
   38                     
@@ -2234,35 +2399,35 @@ QTASM rev 1.18x
   40                     ;; Spin until host writes HPI
   41                     ;*****************************************************************************
   42                     ;; TODO: timeouts
-  43 137e                wait_for_hpi_written:
-  44 137e                @@:
-  45 137e 57ef 0001 07a8     cmp    b[hpi_was_written], 0x01
-  46 1384 c17c               jne    @b
-  47 1386 07ef 0000 07a8     mov    b[hpi_was_written], 0x00
-  48 138c cf97               ret
+  43 145a                wait_for_hpi_written:
+  44 145a                @@:
+  45 145a 57ef 0001 07a8     cmp    b[hpi_was_written], 0x01
+  46 1460 c17c               jne    @b
+  47 1462 07ef 0000 07a8     mov    b[hpi_was_written], 0x00
+  48 1468 cf97               ret
   49                     ;*****************************************************************************
   50                     
   51                     
   52                     ;*****************************************************************************
   53                     ;; Send r0 to HPI port, synchronously
   54                     ;*****************************************************************************
-  55 138e                hpi_mb_tx:
-  56 138e 0027 c0c6          mov    w[HPI_MAILBOX_REG], r0
-  57 1392 af9f 136e          call   wait_for_hpi_read
-  58 1396 cf97               ret
+  55 146a                hpi_mb_tx:
+  56 146a 0027 c0c6          mov    w[HPI_MAILBOX_REG], r0
+  57 146e af9f 144a          call   wait_for_hpi_read
+  58 1472 cf97               ret
   59                     ;*****************************************************************************
   60                     
   61                     
   62                     ;*****************************************************************************
   63                     ;; Receive r0 from HPI port, synchronously
   64                     ;*****************************************************************************
-  65 1398                hpi_mb_rx:
-  66 1398 af9f 137e          call   wait_for_hpi_written
-  67 139c 09c0 c0c6          mov    r0, w[HPI_MAILBOX_REG]
-  68 13a0 cf97               ret
+  65 1474                hpi_mb_rx:
+  66 1474 af9f 145a          call   wait_for_hpi_written
+  67 1478 09c0 c0c6          mov    r0, w[HPI_MAILBOX_REG]
+  68 147c cf97               ret
   69                     ;*****************************************************************************
 
- 137                     include payload.asm
+ 138                     include payload.asm
 
    0                      ;; /*************************************************************************
    1                      ;; *                     This file is part of Stierlitz:                    *
@@ -2291,98 +2456,98 @@ QTASM rev 1.18x
   24                     
   25                      
   26                     ;*****************************************************************************
-  27 13a2 0000           physical_lba_lw			dw 0x0000
-  28 13a4 0000           physical_lba_uw			dw 0x0000
+  27 147e 0000           physical_lba_lw			dw 0x0000
+  28 1480 0000           physical_lba_uw			dw 0x0000
   29                     ;*****************************************************************************
   30                     
   31                     ;*****************************************************************************
   32                     ;; Load physical LBA block.
   33                     ;*****************************************************************************
-  34 13a6                load_physical_lba_block:
-  35 13a6 af9f 141a          call   send_host_physical_lba
+  34 1482                load_physical_lba_block:
+  35 1482 af9f 14f6          call   send_host_physical_lba
   36                     
-  37 13aa 07c1 0100          mov    r1, 0x0100
-  38 13ae 07c9 14ea          mov    r9, send_buffer
-  39 13b2                @@:
-  40 13b2 07c0 4000          mov    r0, 0x4000 ; Read byte from bus
-  41 13b6 af9f 138e          call   hpi_mb_tx  ; Send read command
-  42 13ba af9f 1398          call   hpi_mb_rx  ; Receive result
-  43 13be 67c0 00ff          and    r0, 0x00FF
+  37 1486 07c1 0100          mov    r1, 0x0100
+  38 148a 07c9 15c6          mov    r9, send_buffer
+  39 148e                @@:
+  40 148e 07c0 4000          mov    r0, 0x4000 ; Read byte from bus
+  41 1492 af9f 146a          call   hpi_mb_tx  ; Send read command
+  42 1496 af9f 1474          call   hpi_mb_rx  ; Receive result
+  43 149a 67c0 00ff          and    r0, 0x00FF
   44                     
-  45 13c2 0002               mov    r2, r0
+  45 149e 0002               mov    r2, r0
   46                         
-  47 13c4 07c0 4000          mov    r0, 0x4000 ; Read byte from bus
-  48 13c8 af9f 138e          call   hpi_mb_tx  ; Send read command
-  49 13cc af9f 1398          call   hpi_mb_rx  ; Receive result
-  50 13d0 67c0 00ff          and    r0, 0x00FF
-  51 13d4 d3c0               shl    r0, 8
+  47 14a0 07c0 4000          mov    r0, 0x4000 ; Read byte from bus
+  48 14a4 af9f 146a          call   hpi_mb_tx  ; Send read command
+  49 14a8 af9f 1474          call   hpi_mb_rx  ; Receive result
+  50 14ac 67c0 00ff          and    r0, 0x00FF
+  51 14b0 d3c0               shl    r0, 8
   52                     
-  53 13d6 8002               or     r2, r0
+  53 14b2 8002               or     r2, r0
   54                         
-  55 13d8 00a1               mov    w[r9++], r2
-  56 13da da01               dec    r1
-  57 13dc c16a               jnz    @b
+  55 14b4 00a1               mov    w[r9++], r2
+  56 14b6 da01               dec    r1
+  57 14b8 c16a               jnz    @b
   58                     
-  59 13de cf97               ret
+  59 14ba cf97               ret
   60                     ;*****************************************************************************
   61                     
   62                     
   63                     ;*****************************************************************************
   64                     ;; Save physical LBA block.
   65                     ;*****************************************************************************
-  66 13e0                save_physical_lba_block:
-  67 13e0 af9f 141a          call   send_host_physical_lba
+  66 14bc                save_physical_lba_block:
+  67 14bc af9f 14f6          call   send_host_physical_lba
   68                     
-  69 13e4 07c1 0100          mov    r1, 0x0100
-  70 13e8 07c9 18ea          mov    r9, block_receive_buffer
-  71 13ec                @@:
-  72 13ec 0842               mov    r2, w[r9++]
+  69 14c0 07c1 0100          mov    r1, 0x0100
+  70 14c4 07c9 19c6          mov    r9, block_receive_buffer
+  71 14c8                @@:
+  72 14c8 0842               mov    r2, w[r9++]
   73                     
-  74 13ee 0080               mov    r0, r2
-  75 13f0 67c0 00ff          and    r0, 0x00FF
-  76 13f4 87c0 8000          or     r0, 0x8000 ; Write byte to bus
-  77 13f8 af9f 138e          call   hpi_mb_tx  ; Send write command
-  78 13fc af9f 1398          call   hpi_mb_rx  ; Receive confirmation
+  74 14ca 0080               mov    r0, r2
+  75 14cc 67c0 00ff          and    r0, 0x00FF
+  76 14d0 87c0 8000          or     r0, 0x8000 ; Write byte to bus
+  77 14d4 af9f 146a          call   hpi_mb_tx  ; Send write command
+  78 14d8 af9f 1474          call   hpi_mb_rx  ; Receive confirmation
   79                     
-  80 1400 0080               mov    r0, r2
-  81 1402 d1c0               shr    r0, 8
-  82 1404 67c0 00ff          and    r0, 0x00FF
-  83 1408 87c0 8000          or     r0, 0x8000 ; Write byte to bus
-  84 140c af9f 138e          call   hpi_mb_tx  ; Send write command
-  85 1410 af9f 1398          call   hpi_mb_rx  ; Receive confirmation
+  80 14dc 0080               mov    r0, r2
+  81 14de d1c0               shr    r0, 8
+  82 14e0 67c0 00ff          and    r0, 0x00FF
+  83 14e4 87c0 8000          or     r0, 0x8000 ; Write byte to bus
+  84 14e8 af9f 146a          call   hpi_mb_tx  ; Send write command
+  85 14ec af9f 1474          call   hpi_mb_rx  ; Receive confirmation
   86                         
-  87 1414 da01               dec    r1
-  88 1416 c16a               jnz    @b
-  89 1418 cf97               ret    
+  87 14f0 da01               dec    r1
+  88 14f2 c16a               jnz    @b
+  89 14f4 cf97               ret    
   90                     ;*****************************************************************************
   91                     
   92                     
   93                     ;*****************************************************************************
   94                     ;; Set host's LBA registers.
   95                     ;*****************************************************************************
-  96 141a                send_host_physical_lba:
+  96 14f6                send_host_physical_lba:
   97                         ;; Send LBA[0]:
-  98 141a 09c0 13a2          mov    r0, w[physical_lba_lw]
-  99 141e 67c0 00ff          and    r0, 0xFF
- 100 1422 af9f 138e          call   hpi_mb_tx
+  98 14f6 09c0 147e          mov    r0, w[physical_lba_lw]
+  99 14fa 67c0 00ff          and    r0, 0xFF
+ 100 14fe af9f 146a          call   hpi_mb_tx
  101                         ;; Send LBA[1]:
- 102 1426 09c0 13a2          mov    r0, w[physical_lba_lw]
- 103 142a d1c0               shr    r0, 8
- 104 142c 67c0 00ff          and    r0, 0xFF
- 105 1430 87c0 0100          or     r0, 0x100
- 106 1434 af9f 138e          call   hpi_mb_tx
+ 102 1502 09c0 147e          mov    r0, w[physical_lba_lw]
+ 103 1506 d1c0               shr    r0, 8
+ 104 1508 67c0 00ff          and    r0, 0xFF
+ 105 150c 87c0 0100          or     r0, 0x100
+ 106 1510 af9f 146a          call   hpi_mb_tx
  107                         ;; Send LBA[2]:
- 108 1438 09c0 13a4          mov    r0, w[physical_lba_uw]
- 109 143c d1c0               shr    r0, 8
- 110 143e 67c0 00ff          and    r0, 0xFF
- 111 1442 87c0 0200          or     r0, 0x200
- 112 1446 af9f 138e          call   hpi_mb_tx
+ 108 1514 09c0 1480          mov    r0, w[physical_lba_uw]
+ 109 1518 d1c0               shr    r0, 8
+ 110 151a 67c0 00ff          and    r0, 0xFF
+ 111 151e 87c0 0200          or     r0, 0x200
+ 112 1522 af9f 146a          call   hpi_mb_tx
  113                         ;; Send LBA[3]:
- 114 144a 09c0 13a4          mov    r0, w[physical_lba_uw]
- 115 144e 67c0 00ff          and    r0, 0xFF
- 116 1452 87c0 0300          or     r0, 0x300
- 117 1456 af9f 138e          call   hpi_mb_tx
- 118 145a cf97               ret
+ 114 1526 09c0 1480          mov    r0, w[physical_lba_uw]
+ 115 152a 67c0 00ff          and    r0, 0xFF
+ 116 152e 87c0 0300          or     r0, 0x300
+ 117 1532 af9f 146a          call   hpi_mb_tx
+ 118 1536 cf97               ret
  119                     ;*****************************************************************************
  120                     
  121                     
@@ -2460,7 +2625,7 @@ QTASM rev 1.18x
  193                     
  194                     
 
- 138                     include scsi-state.asm
+ 139                     include scsi-state.asm
 
    0                      ;; /*************************************************************************
    1                      ;; *                     This file is part of Stierlitz:                    *
@@ -2492,18 +2657,18 @@ QTASM rev 1.18x
   27                     ;; SCSI State
   28                     ;*****************************************************************************
   29                     ;; sense key
-  30 145c                SCSI_dw_sense:
-  31 145c 0000           SCSI_dw_sense_lw		dw 0x0000
-  32 145e 0000           SCSI_dw_sense_uw		dw 0x0000
+  30 1538                SCSI_dw_sense:
+  31 1538 0000           SCSI_dw_sense_lw		dw 0x0000
+  32 153a 0000           SCSI_dw_sense_uw		dw 0x0000
   33                     
   34                     ;; hex: 00aabbcc, where aa=KEY, bb=ASC, cc=ASCQ
-  35           0000145d  dwSense_KEY			EQU	(SCSI_dw_sense + 1)
-  36           0000145e  dwSense_ASC			EQU	(SCSI_dw_sense + 2)
-  37           0000145f  dwSense_ASCQ			EQU	(SCSI_dw_sense + 3)
+  35           00001539  dwSense_KEY			EQU	(SCSI_dw_sense + 1)
+  36           0000153a  dwSense_ASC			EQU	(SCSI_dw_sense + 2)
+  37           0000153b  dwSense_ASCQ			EQU	(SCSI_dw_sense + 3)
   38                     
   39                     ;; state machine state
-  40 1460                scsi_state:
-  41 1460 00                 db				0x00
+  40 153c                scsi_state:
+  41 153c 00                 db				0x00
   42                     ;; Possible states:
   43           00000000  SCSI_state_CBW		EQU	0x00
   44           00000001  SCSI_state_data_out	EQU	0x01
@@ -2516,97 +2681,97 @@ QTASM rev 1.18x
   51                     ;; SCSI Command Block Wrapper (received)
   52                     ;*****************************************************************************
   53           0000001f  CBW_Size			EQU	0x1F
-  54           000016ea  MSC_CBW_Signature_lw		EQU	(receive_buffer)
-  55           000016ec  MSC_CBW_Signature_uw		EQU	(receive_buffer + 2)
-  56           000016ee  CBW_tag_lw			EQU	(receive_buffer + 4)
-  57           000016f0  CBW_tag_uw			EQU	(receive_buffer + 6)
-  58           000016f2  CBW_data_transfer_length_lw	EQU	(receive_buffer + 8)
-  59           000016f4  CBW_data_transfer_length_uw	EQU	(receive_buffer + 10)
-  60           000016f6  CBW_flags			EQU	(receive_buffer + 12)
-  61           000016f7  CBW_lun				EQU	(receive_buffer + 13)
-  62           000016f8  CBW_cb_length			EQU	(receive_buffer + 14)
-  63           000016f9  CBW_cb				EQU	(receive_buffer + 15)
+  54           000017c6  MSC_CBW_Signature_lw		EQU	(receive_buffer)
+  55           000017c8  MSC_CBW_Signature_uw		EQU	(receive_buffer + 2)
+  56           000017ca  CBW_tag_lw			EQU	(receive_buffer + 4)
+  57           000017cc  CBW_tag_uw			EQU	(receive_buffer + 6)
+  58           000017ce  CBW_data_transfer_length_lw	EQU	(receive_buffer + 8)
+  59           000017d0  CBW_data_transfer_length_uw	EQU	(receive_buffer + 10)
+  60           000017d2  CBW_flags			EQU	(receive_buffer + 12)
+  61           000017d3  CBW_lun				EQU	(receive_buffer + 13)
+  62           000017d4  CBW_cb_length			EQU	(receive_buffer + 14)
+  63           000017d5  CBW_cb				EQU	(receive_buffer + 15)
   64                     ;*****************************************************************************
   65                     
   66                     ;*****************************************************************************
   67                     ;; All SCSI Command CDBs
   68                     ;*****************************************************************************
-  69           000016f9  Common_SCSI_CDB_op_code		EQU	(CBW_cb)
+  69           000017d5  Common_SCSI_CDB_op_code		EQU	(CBW_cb)
   70                     ;*****************************************************************************
   71                     
   72                     ;*****************************************************************************
   73                     ;; 'Inquiry' SCSI Command
   74                     ;*****************************************************************************
-  75           000016fd  Inquiry_SCSI_CDB_bLength	EQU	(CBW_cb + 4)
+  75           000017d9  Inquiry_SCSI_CDB_bLength	EQU	(CBW_cb + 4)
   76                     ;*****************************************************************************
   77                     
   78                     ;*****************************************************************************
   79                     ;; 'Request Sense' SCSI Command
   80                     ;*****************************************************************************
-  81           000016fd  Request_Sense_SCSI_CDB_bLength	EQU	(CBW_cb + 4)
+  81           000017d9  Request_Sense_SCSI_CDB_bLength	EQU	(CBW_cb + 4)
   82                     ;*****************************************************************************
   83                     
   84                     ;*****************************************************************************
   85                     ;; 'Read-10' SCSI Command
   86                     ;*****************************************************************************
-  87           000016fa  Read10_SCSI_CDB_LUN_etc		EQU	(CBW_cb + 1)
-  88           000016fb  Read10_SCSI_CDB_LBA_3		EQU	(CBW_cb + 2)
-  89           000016fc  Read10_SCSI_CDB_LBA_2		EQU	(CBW_cb + 3)
-  90           000016fd  Read10_SCSI_CDB_LBA_1		EQU	(CBW_cb + 4)
-  91           000016fe  Read10_SCSI_CDB_LBA_0		EQU	(CBW_cb + 5)
-  92           00001700  Read10_SCSI_CDB_Transfer_Len_1	EQU	(CBW_cb + 7)
-  93           00001701  Read10_SCSI_CDB_Transfer_Len_0	EQU	(CBW_cb + 8)
+  87           000017d6  Read10_SCSI_CDB_LUN_etc		EQU	(CBW_cb + 1)
+  88           000017d7  Read10_SCSI_CDB_LBA_3		EQU	(CBW_cb + 2)
+  89           000017d8  Read10_SCSI_CDB_LBA_2		EQU	(CBW_cb + 3)
+  90           000017d9  Read10_SCSI_CDB_LBA_1		EQU	(CBW_cb + 4)
+  91           000017da  Read10_SCSI_CDB_LBA_0		EQU	(CBW_cb + 5)
+  92           000017dc  Read10_SCSI_CDB_Transfer_Len_1	EQU	(CBW_cb + 7)
+  93           000017dd  Read10_SCSI_CDB_Transfer_Len_0	EQU	(CBW_cb + 8)
   94                     ;*****************************************************************************
   95                     
   96                     ;*****************************************************************************
   97                     ;; 'Write-10' SCSI Command
   98                     ;*****************************************************************************
-  99           000016fa  Write10_SCSI_CDB_LUN_etc	EQU	(CBW_cb + 1)
- 100           000016fb  Write10_SCSI_CDB_LBA_3		EQU	(CBW_cb + 2)
- 101           000016fc  Write10_SCSI_CDB_LBA_2		EQU	(CBW_cb + 3)
- 102           000016fd  Write10_SCSI_CDB_LBA_1		EQU	(CBW_cb + 4)
- 103           000016fe  Write10_SCSI_CDB_LBA_0		EQU	(CBW_cb + 5)
- 104           00001700  Write10_SCSI_CDB_Transfer_Len_1	EQU	(CBW_cb + 7)
- 105           00001701  Write10_SCSI_CDB_Transfer_Len_0	EQU	(CBW_cb + 8)
+  99           000017d6  Write10_SCSI_CDB_LUN_etc	EQU	(CBW_cb + 1)
+ 100           000017d7  Write10_SCSI_CDB_LBA_3		EQU	(CBW_cb + 2)
+ 101           000017d8  Write10_SCSI_CDB_LBA_2		EQU	(CBW_cb + 3)
+ 102           000017d9  Write10_SCSI_CDB_LBA_1		EQU	(CBW_cb + 4)
+ 103           000017da  Write10_SCSI_CDB_LBA_0		EQU	(CBW_cb + 5)
+ 104           000017dc  Write10_SCSI_CDB_Transfer_Len_1	EQU	(CBW_cb + 7)
+ 105           000017dd  Write10_SCSI_CDB_Transfer_Len_0	EQU	(CBW_cb + 8)
  106                     ;*****************************************************************************
  107                     
  108                     ;*****************************************************************************
  109                     ;; SCSI Command Status Wrapper (to send to host)
  110                     ;*****************************************************************************
  111           0000000d  CSW_Size			EQU	13
- 112           000014ea  MSC_CSW_Signature_lw		EQU	(send_buffer)
- 113           000014ec  MSC_CSW_Signature_uw		EQU	(send_buffer + 2)
- 114           000014ee  CSW_tag_lw			EQU	(send_buffer + 4)
- 115           000014f0  CSW_tag_uw			EQU	(send_buffer + 6)
- 116           000014f2  CSW_data_residue_lw		EQU	(send_buffer + 8)
- 117           000014f4  CSW_data_residue_uw		EQU	(send_buffer + 10)
- 118           000014f6  CSW_status			EQU	(send_buffer + 12)
+ 112           000015c6  MSC_CSW_Signature_lw		EQU	(send_buffer)
+ 113           000015c8  MSC_CSW_Signature_uw		EQU	(send_buffer + 2)
+ 114           000015ca  CSW_tag_lw			EQU	(send_buffer + 4)
+ 115           000015cc  CSW_tag_uw			EQU	(send_buffer + 6)
+ 116           000015ce  CSW_data_residue_lw		EQU	(send_buffer + 8)
+ 117           000015d0  CSW_data_residue_uw		EQU	(send_buffer + 10)
+ 118           000015d2  CSW_status			EQU	(send_buffer + 12)
  119                     ;*****************************************************************************
  120                     
  121                     ;*****************************************************************************
  122                     ;; Inquiry Response
  123                     ;*****************************************************************************
  124           0001      align 2
- 125 1462                SCSI_inquiry_response:
- 126 1462 00                 db		0x00		; Device = Direct Access
- 127 1463 80                 db		0x80		; RMB = 1: Removable Medium
- 128 1464 00                 db		0x00		; Standard Version = None
- 129 1465 01                 db		0x01		; Data Format = unknown
- 130 1466 20                 db		(INQ_ADD_LEN-4)	; Additional Length
- 131 1467 00                 db		0x00		; Flags: nothing special
- 132 1468 00                 db		0x00		; Flags: normal device, no extra features
- 133 1469 00                 db		0x00		; Flags: no rel. addressing, sync. xmit, linked commands, or queuing
- 134 146a 4c 6f 70 65 72     db          'Loper OS'	; Manufacturer ID (bytes 8..15)
+ 125 153e                SCSI_inquiry_response:
+ 126 153e 00                 db		0x00		; Device = Direct Access
+ 127 153f 80                 db		0x80		; RMB = 1: Removable Medium
+ 128 1540 00                 db		0x00		; Standard Version = None
+ 129 1541 01                 db		0x01		; Data Format = unknown
+ 130 1542 20                 db		(INQ_ADD_LEN-4)	; Additional Length
+ 131 1543 00                 db		0x00		; Flags: nothing special
+ 132 1544 00                 db		0x00		; Flags: normal device, no extra features
+ 133 1545 00                 db		0x00		; Flags: no rel. addressing, sync. xmit, linked commands, or queuing
+ 134 1546 4c 6f 70 65 72     db          'Loper OS'	; Manufacturer ID (bytes 8..15)
           20 4f 53 
- 135 1472 42 75 73 20 74     db		'Bus to Thumb Drv' ; Product ID (bytes 16..31)
+ 135 154e 42 75 73 20 74     db		'Bus to Thumb Drv' ; Product ID (bytes 16..31)
           6f 20 54 68 75 
           6d 62 20 44 72 
           76 
- 136 1482 31 2e 30 30        db		'1.00'		; Product Revision Level (Bytes 32..35)
+ 136 155e 31 2e 30 30        db		'1.00'		; Product Revision Level (Bytes 32..35)
  137           00000024      INQ_ADD_LEN equ ($-SCSI_inquiry_response)
  138                     ;*****************************************************************************
 
- 139                     include descriptor.asm
+ 140                     include descriptor.asm
 
    0                      ;; /*************************************************************************
    1                      ;; *                     This file is part of Stierlitz:                    *
@@ -2637,116 +2802,116 @@ QTASM rev 1.18x
   26                     ;*****************************************************************************
   27                     ; EZ-Host/EZ-OTG device descriptor
   28                     ;*****************************************************************************
-  29 1486                dev_desc:
-  30 1486 12                   db 0x12       ; bLength
-  31 1487 01                   db 0x01       ; bDescriptorType
-  32 1488 0110                 dw USB_VER    ; bcdUSB
-  33 148a 00                   db 0x00       ; bDeviceClass
-  34 148b 00                   db 0x00       ; bDeviceSubClass
-  35 148c 00                   db 0x00       ; bDeviceProtocol
-  36 148d 40                   db 0x40       ; bMaxPacketSize0
-  37 148e 08ec                 dw VENDOR_ID  ; idVendor
-  38 1490 0020                 dw PRODUCT_ID ; idProduct
-  39 1492 0001                 dw FW_REV     ; bcdDevice
-  40 1494 01                   db 1          ; iManufacturer (index of manufacture string)
-  41 1495 02                   db 2          ; iProduct (index of product string)
-  42 1496 03                   db 3          ; iSerialNumber (index of serial number string)
-  43 1497 01                   db 1          ; bNumConfigurations (number of configurations)
+  29 1562                dev_desc:
+  30 1562 12                   db 0x12       ; bLength
+  31 1563 01                   db 0x01       ; bDescriptorType
+  32 1564 0110                 dw USB_VER    ; bcdUSB
+  33 1566 00                   db 0x00       ; bDeviceClass
+  34 1567 00                   db 0x00       ; bDeviceSubClass
+  35 1568 00                   db 0x00       ; bDeviceProtocol
+  36 1569 40                   db 0x40       ; bMaxPacketSize0
+  37 156a 08ec                 dw VENDOR_ID  ; idVendor
+  38 156c 0020                 dw PRODUCT_ID ; idProduct
+  39 156e 0001                 dw FW_REV     ; bcdDevice
+  40 1570 01                   db 1          ; iManufacturer (index of manufacture string)
+  41 1571 02                   db 2          ; iProduct (index of product string)
+  42 1572 03                   db 3          ; iSerialNumber (index of serial number string)
+  43 1573 01                   db 1          ; bNumConfigurations (number of configurations)
   44                     ;****************************************************************
   45                     ; EZ-Host/EZ-OTG configuration descriptor
   46                     ;****************************************************************
-  47 1498                conf_desc:
+  47 1574                conf_desc:
   48           00000000  bLength             equ ($-conf_desc)
-  49 1498 09                   db 9          ; len of config
+  49 1574 09                   db 9          ; len of config
   50           00000001  bDescriptorType     equ ($-conf_desc)
-  51 1499 02                   db 2          ; type of config
+  51 1575 02                   db 2          ; type of config
   52           00000002  wTotalLength        equ ($-conf_desc)
-  53 149a 0020                 dw (end_all-conf_desc)
+  53 1576 0020                 dw (end_all-conf_desc)
   54           00000004  bNumInterfaces      equ ($-conf_desc)
-  55 149c 01                   db 1          ; one interface
+  55 1578 01                   db 1          ; one interface
   56           00000005  bConfigurationValue equ ($-conf_desc)
-  57 149d 01                   db 1          ; config #1
+  57 1579 01                   db 1          ; config #1
   58           00000006  iConfiguration      equ ($-conf_desc)
-  59 149e 00                   db 0          ; index of string describing config
+  59 157a 00                   db 0          ; index of string describing config
   60           00000007  bmAttributes        equ ($-conf_desc)
-  61 149f 80                   db 0x80       ; attributes (self powered)
+  61 157b 80                   db 0x80       ; attributes (self powered)
   62           00000008  MaxPower            equ ($-conf_desc)
-  63 14a0 32                   db 50
+  63 157c 32                   db 50
   64                     ;****************************************************************
   65                     ; Interface Descriptor
   66                     ;****************************************************************
-  67 14a1                interface_desc:
-  68 14a1 09                   db 9
-  69 14a2 04                   db 4
+  67 157d                interface_desc:
+  68 157d 09                   db 9
+  69 157e 04                   db 4
   70           00000002  bInterfaceNumber    equ ($-interface_desc)
-  71 14a3 00                   db 0          ; base #
+  71 157f 00                   db 0          ; base #
   72           00000003  bAlternateSetting   equ ($-interface_desc)
-  73 14a4 00                   db 0          ; alt
+  73 1580 00                   db 0          ; alt
   74           00000004  bNumEndpoints       equ ($-interface_desc)
-  75 14a5 02                   db 2          ; 2 endpoints
+  75 1581 02                   db 2          ; 2 endpoints
   76           00000005  bInterfaceClass     equ ($-interface_desc)
-  77 14a6 08                   db 0x08       ; interface class (Mass Storage)
+  77 1582 08                   db 0x08       ; interface class (Mass Storage)
   78           00000006  bInterfaceSubClass  equ ($-interface_desc)
-  79 14a7 06                   db 0x06       ; subclass (SCSI)
+  79 1583 06                   db 0x06       ; subclass (SCSI)
   80           00000007  bInterfaceProtocol  equ ($-interface_desc)
-  81 14a8 50                   db 0x50       ; interface proto (Bulk-Only Transport)
+  81 1584 50                   db 0x50       ; interface proto (Bulk-Only Transport)
   82           00000008  iInterface          equ ($-interface_desc)
-  83 14a9 00                   db 0          ; index of string describing interface
+  83 1585 00                   db 0          ; index of string describing interface
   84           00000009  INTERFACE_DESC_LEN equ ($-interface_desc)
   85                     ;****************************************************************
   86                     ; EZ-Host/EZ-OTG endpoints descriptor
   87                     ;****************************************************************
   88                     ;; --------------------------------------------------
-  89 14aa 07             ep1:  db 0x07       ; len
-  90 14ab 05                   db 0x05       ; type (endpoint)
-  91 14ac 81                   db EP_IN_ADDR ; bEndpointAddress (EP 1 IN)
-  92 14ad 02                   db 0x02	    ; bmAttributes = Bulk
-  93 14ae 0040                 dw USB_PACKET_SIZE ; packet size = 64 bytes
-  94 14b0 00                   db EP_IN_BINTERVAL ; bInterval
+  89 1586 07             ep1:  db 0x07       ; len
+  90 1587 05                   db 0x05       ; type (endpoint)
+  91 1588 81                   db EP_IN_ADDR ; bEndpointAddress (EP 1 IN)
+  92 1589 02                   db 0x02	    ; bmAttributes = Bulk
+  93 158a 0040                 dw USB_PACKET_SIZE ; packet size = 64 bytes
+  94 158c 00                   db EP_IN_BINTERVAL ; bInterval
   95                     ;; --------------------------------------------------
-  96 14b1 07             ep2:  db 0x07       ; len
-  97 14b2 05                   db 0x05       ; type (endpoint)
-  98 14b3 02                   db EP_OUT_ADDR ; bEndpointAddress (EP 2 OUT)
-  99 14b4 02                   db 0x02       ; bmAttributes = Bulk
- 100 14b5 0040                 dw USB_PACKET_SIZE ; packet size = 64 bytes
- 101 14b7 00                   db EP_OUT_BINTERVAL ; bInterval
+  96 158d 07             ep2:  db 0x07       ; len
+  97 158e 05                   db 0x05       ; type (endpoint)
+  98 158f 02                   db EP_OUT_ADDR ; bEndpointAddress (EP 2 OUT)
+  99 1590 02                   db 0x02       ; bmAttributes = Bulk
+ 100 1591 0040                 dw USB_PACKET_SIZE ; packet size = 64 bytes
+ 101 1593 00                   db EP_OUT_BINTERVAL ; bInterval
  102                     ;; --------------------------------------------------
- 103 14b8                end_all:
+ 103 1594                end_all:
  104           0000            align 2
  105                     ;================================================
  106                     ; String: Require the string must be align 2
  107                     ;================================================
  108                     ;;-----------------------------------------------
- 109 14b8                string_desc:
- 110 14b8 04                   db STR0_LEN
- 111 14b9 03                   db 3
- 112 14ba 0409                 dw 0x409     ; language id = English
+ 109 1594                string_desc:
+ 110 1594 04                   db STR0_LEN
+ 111 1595 03                   db 3
+ 112 1596 0409                 dw 0x409     ; language id = English
  113           00000004  STR0_LEN equ ($-string_desc)
  114                     ;;-----------------------------------------------
- 115 14bc                str1:
- 116 14bc 12                   db STR1_LEN
- 117 14bd 03                   db 3
- 118 14be 004c 006f 0070       dw 'Loper OS'
+ 115 1598                str1:
+ 116 1598 12                   db STR1_LEN
+ 117 1599 03                   db 3
+ 118 159a 004c 006f 0070       dw 'Loper OS'
           0065 0072 0020 
           004f 0053 
  119           00000012  STR1_LEN equ ($-str1)
  120                     ;;-----------------------------------------------
- 121 14ce 14             str2: db STR2_LEN
- 122 14cf 03                   db 3
- 123 14d0 0053 0074 0069       dw 'Stierlitz'
+ 121 15aa 14             str2: db STR2_LEN
+ 122 15ab 03                   db 3
+ 123 15ac 0053 0074 0069       dw 'Stierlitz'
           0065 0072 006c 
           0069 0074 007a 
 
  124           00000014  STR2_LEN equ ($-str2)
  125                     ;;-----------------------------------------------
- 126 14e2 08             str3: db STR3_LEN
- 127 14e3 03                   db 3
- 128 14e4 0033 0030 0030       dw '300'
+ 126 15be 08             str3: db STR3_LEN
+ 127 15bf 03                   db 3
+ 128 15c0 0033 0030 0030       dw '300'
  129           00000008  STR3_LEN equ ($-str3)
  130                     ;;-----------------------------------------------
  131           0000            align 2
 
- 140                     include fat16.asm
+ 141                     include fat16.asm
 
    0                      ;; /*************************************************************************
    1                      ;; *                     This file is part of Stierlitz:                    *
@@ -2804,8 +2969,8 @@ QTASM rev 1.18x
   53                     ;*****************************************************************************
   54           ffffaa55  BOOT_SIGNATURE				equ	0xaa55 ; for both boot block and MBA
   55                     ;; Partition Record in MBR
-  56           000016a8  PART0_MBR_RECORD_OFFSET			equ     (send_buffer + 0x01BE)
-  57           000016e8  BOOT_SIGNATURE_OFFSET			equ	(send_buffer + 0x01fe)
+  56           00001784  PART0_MBR_RECORD_OFFSET			equ     (send_buffer + 0x01BE)
+  57           000017c4  BOOT_SIGNATURE_OFFSET			equ	(send_buffer + 0x01fe)
   58           fffff6f6  FAT16_BOOT_BLOCK_FILLER			equ	0xf6f6  ; how MSDOS did it
   59                     ;*****************************************************************************
   60                     
@@ -2845,24 +3010,24 @@ QTASM rev 1.18x
   94                     
   95                     ;*****************************************************************************
 
- 141                     ;*****************************************************************************
- 142                     ;; Buffers
- 143           0000      align 2
- 144                     
- 145 14ea                send_buffer			dup 512
- 146 16ea                receive_buffer			dup 512
- 147 18ea                block_receive_buffer		dup 512
- 148                     ;*****************************************************************************
- 149                     
- 150                     ;*****************************************************************************
- 151 1aea                rom_end:
- 152 1aea c3b6               dw     SCAN_SIGNATURE       ; signature 
- 153 1aec 0002               dw	   2                    ; length
- 154 1aee 05                 db     5                    ; jump opcode
- 155 1aef 0500               dw     ORIGIN               ; Jump to BIOS Start in RAM
- 156 1af1 00                 db 	   0                    ; end scan
- 157                     ;*****************************************************************************
+ 142                     ;*****************************************************************************
+ 143                     ;; Buffers
+ 144           0000      align 2
+ 145                     
+ 146 15c6                send_buffer			dup 512
+ 147 17c6                receive_buffer			dup 512
+ 148 19c6                block_receive_buffer		dup 512
+ 149                     ;*****************************************************************************
+ 150                     
+ 151                     ;*****************************************************************************
+ 152 1bc6                rom_end:
+ 153 1bc6 c3b6               dw     SCAN_SIGNATURE       ; signature 
+ 154 1bc8 0002               dw	   2                    ; length
+ 155 1bca 05                 db     5                    ; jump opcode
+ 156 1bcb 0500               dw     ORIGIN               ; Jump to BIOS Start in RAM
+ 157 1bcd 00                 db 	   0                    ; end scan
  158                     ;*****************************************************************************
  159                     ;*****************************************************************************
  160                     ;*****************************************************************************
+ 161                     ;*****************************************************************************
 Total Passes = 6

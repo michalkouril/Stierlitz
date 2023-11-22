@@ -68,6 +68,14 @@ FILE_SIZE_IN_BLKS_LW	equ	0x4671
 FILE_SIZE_IN_BLKS_UW	equ	0x0000
 FAKE_FILE_CLUSTERS	equ	282
 
+;;;;;;;;;;;; I2C 16 k (16384)
+FILE2_SIZE_LW		equ	0x4000
+FILE2_SIZE_UW		equ	0x0000
+FILE2_SIZE_IN_BLKS_LW	equ	0x0020
+FILE2_SIZE_IN_BLKS_UW	equ	0x0000
+FAKE_FILE2_CLUSTERS	equ	1
+FILE2_CLUSTER_START_LW  equ     (3+FAKE_FILE_CLUSTERS)
+
 ;*****************************************************************************
 
 
