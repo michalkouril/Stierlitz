@@ -210,6 +210,16 @@ save_lba_block:
     ;; this was a payload block:
     call   save_physical_lba_block
     ret	; and so we're done here.
+
+@@: ;; try second file
+
+    call   test_file2_lba_block_in_payload_range
+    test   r0, 1
+    jz     @f
+    ;; this was a payload block:
+    call   save_physical_lba_block_i2c
+    ret	; and so we're done here.
+
 @@: ;; don't do anything for non-payload blocks...
     ret
 ;*****************************************************************************
