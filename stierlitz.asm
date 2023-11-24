@@ -134,6 +134,8 @@ include util.asm
 include scsi-data.asm
 include scsi-cmd.asm
 include i2c.asm
+include cy16.asm
+include icap.asm
 include block.asm
 include hpi.asm
 include payload.asm

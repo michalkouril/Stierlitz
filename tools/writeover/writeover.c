@@ -66,6 +66,8 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
+  setvbuf(fpout, NULL, _IONBF, 0);
+
   // verify the size of the destination is greater or equal the size of the source
   fseek(fp, 0L, SEEK_END);
   fseek(fpout, 0L, SEEK_END);

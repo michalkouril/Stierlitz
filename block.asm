@@ -111,6 +111,53 @@ test_file2_lba_block_in_payload_range:
     ret
 ;*****************************************************************************
 
+;*****************************************************************************
+; third file
+; TODO: hack -- fix sum of LWs overflow
+;*****************************************************************************
+FILE3_BOTTOM_LW	equ	(FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM + (FAKE_FILE_CLUSTERS * 0x040) + (FAKE_FILE2_CLUSTERS * 0x040))
+FILE3_BOTTOM_UW	equ	0
+FILE3_TOP_LW	equ	(FILE3_BOTTOM_LW + FILE3_SIZE_IN_BLKS_LW)
+FILE3_TOP_UW	equ	0
+;*****************************************************************************
+test_file3_lba_block_in_payload_range:
+    mov    r3, FILE3_BOTTOM_UW
+    mov    r2, FILE3_BOTTOM_LW
+    mov    r4, FILE3_TOP_UW
+    mov    r5, FILE3_TOP_LW
+    call   test_lba_block_in_range
+    test   r2, 1
+    jz     @f
+    mov    w[physical_lba_uw], r1
+    mov    w[physical_lba_lw], r0
+@@:
+    mov    r0, r2
+    ret
+;*****************************************************************************
+
+;*****************************************************************************
+; fourth file
+; TODO: hack -- fix sum of LWs overflow
+;*****************************************************************************
+FILE4_BOTTOM_LW	equ	(FAT16_DATA_AREA_LBA_LW_EFFECTIVE_BOTTOM + (FAKE_FILE_CLUSTERS * 0x040) + (FAKE_FILE2_CLUSTERS * 0x040) + (FAKE_FILE3_CLUSTERS * 0x040))
+FILE4_BOTTOM_UW	equ	0
+FILE4_TOP_LW	equ	(FILE4_BOTTOM_LW + FILE4_SIZE_IN_BLKS_LW)
+FILE4_TOP_UW	equ	0
+;*****************************************************************************
+test_file4_lba_block_in_payload_range:
+    mov    r3, FILE4_BOTTOM_UW
+    mov    r2, FILE4_BOTTOM_LW
+    mov    r4, FILE4_TOP_UW
+    mov    r5, FILE4_TOP_LW
+    call   test_lba_block_in_range
+    test   r2, 1
+    jz     @f
+    mov    w[physical_lba_uw], r1
+    mov    w[physical_lba_lw], r0
+@@:
+    mov    r0, r2
+    ret
+;*****************************************************************************
 
 ;*****************************************************************************
 ;; Load LBA block
@@ -127,6 +174,22 @@ load_lba_block:
     test   r0, 1
     jz     @f
     call   load_physical_lba_block_from_i2c ; this was a payload block w[physical_lba_uw] and w[physical_lba_lw]
+    ; call  zap_with_test_data
+    ret	; and so we're done here.
+@@: ; Or, well, not:
+
+    call   test_file3_lba_block_in_payload_range
+    test   r0, 1
+    jz     @f
+    call   load_physical_lba_block_from_cy16 ; this was a payload block w[physical_lba_uw] and w[physical_lba_lw]
+    ; call  zap_with_test_data
+    ret	; and so we're done here.
+@@: ; Or, well, not:
+
+    call   test_file4_lba_block_in_payload_range
+    test   r0, 1
+    jz     @f
+    call   load_physical_lba_block_from_icap ; this was a payload block w[physical_lba_uw] and w[physical_lba_lw]
     ; call  zap_with_test_data
     ret	; and so we're done here.
 @@: ; Or, well, not:
@@ -220,6 +283,24 @@ save_lba_block:
     call   save_physical_lba_block_i2c
     ret	; and so we're done here.
 
+@@: ;; try third file
+
+    call   test_file3_lba_block_in_payload_range
+    test   r0, 1
+    jz     @f
+    ;; this was a payload block:
+    call   save_physical_lba_block_cy16
+    ret	; and so we're done here.
+
+@@: ;; try fourth file
+
+    call   test_file4_lba_block_in_payload_range
+    test   r0, 1
+    jz     @f
+    ;; this was a payload block:
+    call   save_physical_lba_block_icap
+    ret	; and so we're done here.
+
 @@: ;; don't do anything for non-payload blocks...
     ret
 ;*****************************************************************************
@@ -289,7 +370,7 @@ build_fat16_fat:
     subi   r1, 1      ; find out where we are r0=256*FAT page number (0..FF) -- are we past the allocated clusters?
     jnz    @b
     ;; if we're past the last page?
-    cmp    r0, (FAKE_FILE_CLUSTERS+FAKE_FILE2_CLUSTERS)
+    cmp    r0, (FAKE_FILE_CLUSTERS+FAKE_FILE2_CLUSTERS+FAKE_FILE3_CLUSTERS+FAKE_FILE4_CLUSTERS)
     jbe    @f
     call   zap_send_buffer
     jmp    fat_build_done
@@ -307,6 +388,10 @@ build_fat:
     je     penult_cluster ; this was the penultimate cluster for file1
     cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS + FAKE_FILE2_CLUSTERS - 1)
     je     penult_cluster ; this was the penultimate cluster for file2
+    cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS + FAKE_FILE2_CLUSTERS + FAKE_FILE3_CLUSTERS - 1)
+    je     penult_cluster ; this was the penultimate cluster for file2
+    cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS + FAKE_FILE2_CLUSTERS + FAKE_FILE3_CLUSTERS + FAKE_FILE4_CLUSTERS - 1)
+    je     penult_cluster ; this was the penultimate cluster for file2
     mov    w[r9++], r0
     addi   r0, 1
     jmp    @b ; keep adding cluster records.
@@ -314,8 +399,8 @@ build_fat:
 penult_cluster:
     mov    w[r9++], 0xFFFF ; Now write the last cluster of file.
     addi   r0, 1
-    cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS + FAKE_FILE2_CLUSTERS - 1)
-    jbe     build_fat ; still need to build file2
+    cmp    r0, (FIRST_CLUSTER_INDEX + FAKE_FILE_CLUSTERS + FAKE_FILE2_CLUSTERS + FAKE_FILE3_CLUSTERS + FAKE_FILE4_CLUSTERS - 1)
+    jbe     build_fat ; still need to build file2,3,4
 
     ;; this was file2 -- clean the rest
     xor    r0, r0 ; r0=0
@@ -385,6 +470,36 @@ fat16_root_dir_data:
 	dw	FILE2_CLUSTER_START_LW ; low word of 1st cluster address
 	dw	FILE2_SIZE_LW ; lower word of size (0 for directories)
 	dw	FILE2_SIZE_UW ; upper word of size (0 for directories)	
+	;; *****************************************************************
+        ;; The File itself
+        ;; *****************************************************************
+    	db      'CY16    BIN' ; Volume Label (8 chars body + 3 chars ext)
+	db	0x20   ; Attrib = 0x20 ("Archive")
+	dw	0x0000 ; b. 12 - n/a; b. 13 - creation time (10th of secs)
+	dw	0x0000 ; 14, 15: creation time (hours, minutes, seconds)
+	dw	0x0000 ; creation date
+	dw	0x0000 ; access date
+	dw	0x0000 ; high word of 1st cluster address
+	dw	0x0000 ; modified time (hours, minutes, seconds)
+	dw	0x0000 ; modified date
+	dw	FILE3_CLUSTER_START_LW ; low word of 1st cluster address
+	dw	FILE3_SIZE_LW ; lower word of size (0 for directories)
+	dw	FILE3_SIZE_UW ; upper word of size (0 for directories)	
+	;; *****************************************************************
+        ;; The File itself
+        ;; *****************************************************************
+    	db      'ICAP    BIN' ; Volume Label (8 chars body + 3 chars ext)
+	db	0x20   ; Attrib = 0x20 ("Archive")
+	dw	0x0000 ; b. 12 - n/a; b. 13 - creation time (10th of secs)
+	dw	0x0000 ; 14, 15: creation time (hours, minutes, seconds)
+	dw	0x0000 ; creation date
+	dw	0x0000 ; access date
+	dw	0x0000 ; high word of 1st cluster address
+	dw	0x0000 ; modified time (hours, minutes, seconds)
+	dw	0x0000 ; modified date
+	dw	FILE4_CLUSTER_START_LW ; low word of 1st cluster address
+	dw	FILE4_SIZE_LW ; lower word of size (0 for directories)
+	dw	FILE4_SIZE_UW ; upper word of size (0 for directories)	
         ;; *****************************************************************
 	FAT16_ROOT_DIR_DATA_LEN equ ($-fat16_root_dir_data)
 ;*****************************************************************************
