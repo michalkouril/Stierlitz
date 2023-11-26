@@ -25,3 +25,37 @@ The demo gives you a 128K "file" mapped to SRAM ("infer-sram.v"; need an FPGA wi
 Another example, involving an LCD module, can be seen here:
 
 http://www.loper-os.org/?p=797
+
+---
+
+Examples:
+
+```
+mount -o sync /dev/sda1 /mnt/s
+```
+
+Flash new i2c eeprom:
+```
+sudo tools/writeover/writeover -i build/stierlitz.bin -o /mnt/s/I2C.BIN
+```
+
+Reboot cy16:
+```
+echo "something" > cy16_reboot
+sudo tools/writeover/writeover -i cy16_reboot -o /mnt/s/CY16.BIN
+```
+
+ICAP reboot sequence:
+
+```
+(
+echo -n -e '\xff\xff\xff\xff'; # x"FFFFFFFF";   -- Dummy Word
+echo -n -e '\xaa\x99\x55\x66'; # x"AA995566";   -- Sync Word
+echo -n -e '\x20\x00\x00\x00'; # x"20000000";   -- Type 1 NO OP
+echo -n -e '\x30\x02\x00\x01'; # x"30020001";   -- Type 1 Write 1 Word to WBSTAR
+echo -n -e '\x00\x00\x00\x00'; # x"00000000";   -- Warm Boot Start Address
+echo -n -e '\x20\x00\x00\x00'; # x"20000000";   -- Type 1 NO OP
+echo -n -e '\x30\x00\x80\x01'; # x"30008001";   -- Type 1 Write 1 Words to CMD
+echo -n -e '\x00\x00\x00\x0f'; # x"0000000F";   -- IPROG Command
+) > icap_reboot
+```

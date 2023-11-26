@@ -26,6 +26,8 @@
 /*
    2023-11-16 Michal Kouril <xmkouril@gmail.com>
      * ML605 support
+     * BPI (read)
+     * ICAP (reboot)
  */
 
 `include "stierlitz.v"
@@ -144,7 +146,7 @@ module stierlitz_demo_top
 
    MMCM_BASE #(
      .CLKFBOUT_MULT_F(5),
-     .CLKOUT1_DIVIDE(64),
+     .CLKOUT1_DIVIDE(128),
      .CLKOUT2_DIVIDE(32)
    )
    hpi_clock_mmcm (.CLKIN1(sys_clk),
@@ -166,7 +168,8 @@ module stierlitz_demo_top
    
 
    // assign led_byte = sbus_address[16:9];
-   assign led_byte = FLASH_D[7:0];
+   // assign led_byte = FLASH_D[7:0];
+   assign led_byte = {go, bit_swapped[6:0]};
 
    
    stierlitz s(.clk(hpi_clock),
@@ -207,29 +210,124 @@ module stierlitz_demo_top
    // 	endcase // case (sbus_address[1:0])
    //   end
 
+   reg          sbus_ready_out;
+   assign       sbus_ready = sbus_ready_out;
+
+   reg [7:0] 	sbus_data_out;
+   assign sbus_data = sbus_rw ? sbus_data_out : 8'bz;
+
+/*
    wire 	ram_we;
    wire 	ram_oe;
    assign ram_we = (~sbus_rw) & sbus_start_op;
    assign ram_oe = sbus_rw & sbus_start_op;
+*/
 
    assign FLASH_A = sbus_address[24:1];
 
-   reg [15:0] sbus_start_op_shift;
+   reg        flash_read = 1'b1;
+   reg [31:0] sbus_start_op_shift;
+   reg [31:0] sbus_data_in_shift;
+
+   wire [7:0] sbus_data_in_icap_mapped;
+   assign     sbus_data_in_icap_mapped = {sbus_data[0], sbus_data[1], sbus_data[2], sbus_data[3], sbus_data[4], sbus_data[5], sbus_data[6], sbus_data[7]};
+
+   wire [31:0] sbus_data_in_icap_shift_next;
+   assign     sbus_data_in_icap_shift_next = { sbus_data_in_shift[23:0], sbus_data_in_icap_mapped };
+
+   reg [31:0] icap_data_in;
+   reg [7:0]  icap_ram0 [15:0]; 
+   reg [7:0]  icap_ram1 [15:0]; 
+   reg [7:0]  icap_ram2 [15:0]; 
+   reg [7:0]  icap_ram3 [15:0]; 
+
+
+   reg        go = 1'b0;
+   reg        reboot = 1'b0;
+   reg [3:0]  cnt_bitst  = 4'b0;
+   reg        icap_cs = 1'b1;
+   reg        icap_rw = 1'b1;
+   reg [31:0] d = 32'hFFFFFFFF;
+   wire [31:0] bit_swapped;
 
    always @(posedge hpi_clock)
    begin
+	// icap_cs = 1'b0;
+
         if (sbus_start_op == 1'b0)
 	begin
 	   sbus_start_op_shift = 0;
+	   sbus_ready_out = 1'b0;
 	end else
 	begin
-   	   sbus_start_op_shift = { sbus_start_op_shift[14:0], sbus_start_op };
+   	   sbus_start_op_shift = { sbus_start_op_shift[30:0], sbus_start_op };
+	end
+
+	// start of op
+	if ((sbus_start_op_shift[0]!=sbus_start_op_shift[1]) && (sbus_start_op_shift[0]==1'b1))
+	begin
+	   flash_read = sbus_rw;
+
+	   // write to ICAP
+	   if ((sbus_rw==1'b0) && (sbus_address[28] == 1'b1))
+	   begin
+	      go = 1'b1;
+	      // icap_ram[0] = 8'hAA;
+/*
+              if (sbus_address[23:3]==21'b0)
+	      begin
+	        icap_ram[sbus_address[2:0]] = sbus_data;
+	      end
+*/
+	      if (sbus_address[1:0] == 2'b11)
+	      begin
+	        icap_data_in = sbus_data_in_icap_shift_next;
+		// icap_cs = 1'b1;
+	      end
+	      else
+	      begin
+   	        sbus_data_in_shift = sbus_data_in_icap_shift_next;
+	      end
+	   end
+	end
+
+        // READ
+	if ((sbus_rw==1'b1) && (sbus_start_op_shift[10]!=sbus_start_op_shift[11]) && (sbus_start_op_shift[10]==1'b1))
+	begin
+	   if (sbus_address[28] == 1'b1)
+	   begin
+              if (sbus_address[23:6]==18'b0)
+	      begin
+	        // sbus_data_out = icap_ram0[sbus_address[3:0]];
+		
+	        case (sbus_address[1:0])
+		2'b00: sbus_data_out = icap_ram0[sbus_address[5:2]]; // 8'hcc;
+		2'b01: sbus_data_out = icap_ram1[sbus_address[5:2]]; // 8'hcc;
+		2'b10: sbus_data_out = icap_ram2[sbus_address[5:2]]; // 8'hcc;
+		2'b11: sbus_data_out = icap_ram3[sbus_address[5:2]]; // 8'hcc;
+		endcase;
+		
+	      end else
+	      begin
+	        sbus_data_out = 8'hcc;
+	      end
+	   end
+	   else
+	   begin
+	      sbus_data_out = sbus_address[0]?FLASH_D[15:8] : FLASH_D[7:0];
+	   end
+	   sbus_ready_out = 1'b1;
+	end
+
+        // WRITE
+	if ((sbus_rw==1'b0) && (sbus_start_op_shift[10]!=sbus_start_op_shift[11]) && (sbus_start_op_shift[10]==1'b1))
+	begin
+	   sbus_ready_out = 1'b1;
 	end
    end
 
-   assign sbus_ready = sbus_start_op_shift[15]; // delay sbus_ready by 15 cycles after oe goes up
-
-   assign sbus_data = (ram_we == 1'b0 & ram_oe == 1'b1) ? (sbus_address[0]?FLASH_D[15:8] : FLASH_D[7:0]) : 8'bz;
+   // on write -- assume sequential -- remember the previous 8 bit value to form 16 bit BPI write
+   // OE constant to 1 and WE to 0
 
    assign CLED = CBUTTON;
    assign ELED = EBUTTON;
@@ -238,12 +336,87 @@ module stierlitz_demo_top
    assign WLED = WBUTTON;
 
    // output FLASH_WAIT;
-   assign FPGA_FWE_B = 1'b1; // WE# // read-only
-   assign FPGA_FOE_B = ~sbus_start_op; // Output enable active-low
+   assign FPGA_FWE_B = flash_read; // 1'b1; // WE# // read-only
+   assign FPGA_FOE_B = 1'b0;  // Output enable active-low
    // assign FPGA_CCLK = 1'b0; // X
    assign FPGA_FCS_B = 1'b0;
    assign PLATFLASH_L_B = 1'b0;
    assign P30_CS_SEL = 1'b1;
+
+        ICAP_VIRTEX6 
+	#(
+          .ICAP_WIDTH("X32")                  // Specifies the input and output data width to be used with the
+                                              // ICAP_VIRTEX6.
+       )
+       ICAP_VIRTEX6_inst (
+          .BUSY(),                                                           // 1-bit output: Busy/Ready output
+          .O(),                                                              // 32-bit output: Configuration data output bus
+          .CLK(hpi_clock),                                                   // 1-bit input: Clock Input
+          .CSB(icap_cs),                                                    // 1-bit input: Active-Low ICAP input Enable
+          .I(bit_swapped),                                              // 32-bit input: Configuration data input bus
+          .RDWRB(icap_rw)                                                       // as of now the write operation is 0
+                                                                             // 1-bit input: Read/Write Select input
+       );
+
+   always @(posedge hpi_clock)
+   begin
+      if (go == 1'b1) 
+      begin
+        reboot = 1'b1;
+      end
+     
+      if (reboot == 1'b0)
+      begin
+        icap_cs  = 1'b1;
+        icap_rw  = 1'b1;
+        cnt_bitst = 4'h0;
+      end else
+      begin
+        case(cnt_bitst)
+            4'd0: begin
+		   d = 32'hFFFFFFFF; // Dummy Word
+	           icap_cs = 1'b0;
+		   icap_rw = 1'b0;
+		  end
+            // using registers for now
+            4'd1: d = 32'hFFFFFFFF; // Dummy Word
+            4'd2: d = 32'hAA995566; // Sync Word
+            4'd3: d = 32'h20000000; // Type 1 NO OP
+            4'd4: d = 32'h30020001; // Type 1 Write 1 Word to WBSTAR
+            4'd5: d = 32'h00000000; // Warm Boot Start Address
+            4'd6: d = 32'h20000000; // Type 1 NO OP
+            4'd7: d = 32'h30008001; // Type 1 Write 1 Words to CMD
+            4'd8: d = 32'h0000000F; // IPROG Command
+            4'd9: d = 32'h20000000; // Type 1 NO OP
+            4'd10: d = 32'hFFFFFFFF; // Dummy Word
+            // Bye, bye
+            default: begin
+	               icap_cs = 1'b1;
+		       icap_rw = 1'b1;
+		       d = 32'h20000000; // Type 1 NO OP
+		     end
+          endcase;
+
+          if (cnt_bitst<11)
+	  begin
+	     icap_ram0[cnt_bitst] = d[31:24];
+	     icap_ram1[cnt_bitst] = d[23:16];
+	     icap_ram2[cnt_bitst] = d[15:8];
+	     icap_ram3[cnt_bitst] = d[7:0];
+	  end
+
+         if(cnt_bitst != 4'ha)
+	 begin
+            cnt_bitst = cnt_bitst + 1;
+         end
+
+        end;  // if go
+   end;  // always
+
+   assign bit_swapped[31:24] = { d[24],d[25],d[26],d[27],d[28],d[29],d[30],d[31]};
+   assign bit_swapped[23:16] = { d[16],d[17],d[18],d[19],d[20],d[21],d[22],d[23]};
+   assign bit_swapped[15:8]  = { d[8],d[9],d[10],d[11],d[12],d[13],d[14],d[15]};
+   assign bit_swapped[7:0]   = { d[0],d[1],d[2],d[3],d[4],d[5],d[6],d[7]};
 
 /*     
    infer_sram #(17, 8, 131072)
